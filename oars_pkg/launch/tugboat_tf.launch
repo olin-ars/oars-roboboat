@@ -1,0 +1,13 @@
+<launch>
+    <!-- Transforms for AR markers -->
+    <!-- <node name="ar_visualization_transform" pkg="tf" type="static_transform_publisher" 
+         args="0 0 0 1.57 0 0 /ar_marker_0 /boat_link_ar 100" /> -->
+
+    <node name="world_frame_transform" pkg="tf2_ros" type="static_transform_publisher"
+         args="0 0 -0.86 0 0 0 /pool /base_link" />
+
+    <node name="ar_tag_transform" pkg="tf2_ros" type="static_transform_publisher"
+         args="0 0 0 -1.57 0 0 /boat_link /ar_tag" />
+
+
+</launch>

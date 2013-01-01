@@ -1,0 +1,10 @@
+<launch>
+	<include file="$(find oars_pkg)/launch/tugboat_tf.launch"/>
+    <!-- Transformers for data types -->
+    <node name="ar_tag_transformer" pkg="oars_pkg" type="groundtruth_ar_republisher.py"/>
+
+    <!-- Local localization -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_groundtruth" output="screen">
+    	<rosparam command="load" file="$(find oars_pkg)/config/localization_groundtruth.yaml" />
+    </node>
+</launch>
