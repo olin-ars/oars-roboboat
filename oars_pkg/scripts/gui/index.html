@@ -16,7 +16,7 @@
   // Connecting to ROS
   // -----------------
 
-  var rosIP = 'ws://' + prompt('ROS IP address', '192.168.17.130') + ':9090'
+  var rosIP = 'ws://' + prompt('ROS IP address', 'localhost') + ':9090'
   var ros = setupROS()
 
   function setupROS() {
@@ -92,30 +92,11 @@
 
 
 
-  // Sail subscriber(s)
-  var listensail = new ROSLIB.Topic({
-    ros : ros,
-    name : '/sail/pos',
-    messageType : 'std_msgs/Float32'
-  });
-
-  listensail.subscribe(function(message) {
-    var string=message.data.toFixed(2);
-    //console.log('Received Sail : ' + string);
-
-    $("#sail_angle").text(string);
-
-    var angle=message.data*12; //This should be multiplied for real boat values.
-    $("#sailVis").attr("Transform","rotate("+angle+")")
-  });
-
-
-
   // Rudder subscriber
   var listenrudder = new ROSLIB.Topic({
     ros : ros,
-    name : '/rudder/pos',
-    messageType : 'std_msgs/Int16'
+    name : 'rudder_angle',
+    messageType : 'std_msgs/Float32'
   });
 
   listenrudder.subscribe(function(message) {
@@ -127,87 +108,6 @@
     var angle = -message.data;
     $("#rudderVis").attr("Transform","rotate("+angle+")")
   });
-
-
-
-  // Wind subscribers
-
-    // True wind
-  var listentruewind = new ROSLIB.Topic({
-    ros : ros,
-    name : '/true_wind',
-    messageType : 'geometry_msgs/Pose2D'
-  });
-
-  listentruewind.subscribe(function(message) {
-    var string=message.x.toFixed(2)+"@"+message.theta.toFixed(2);
-
-    $("#true_wind").text(string);
-  });  
-
-    // Global wind
-  var listenglobalwind = new ROSLIB.Topic({
-    ros : ros,
-    name : '/global_wind',
-    messageType : 'geometry_msgs/Pose2D'
-  });
-
-  listenglobalwind.subscribe(function(message) {
-    var string=message.x.toFixed(2)+"@"+message.theta.toFixed(2);
-    //console.log('Received Rudder : ' + string);
-
-    $("#global_wind").text(string);
-
-     var angle=message.theta;
-     $("#windVector1").attr("Transform","rotate("+angle+")")
-  });
-
-
-  // Autonomy internals
-  // Note the use of an anonymous function to scope the topic variable locally
-  (function() { 
-    var topic = new ROSLIB.Topic({
-      ros : ros,
-      name : '/tacking',
-      messageType : 'std_msgs/Bool'
-    });
-
-    topic.subscribe(function(message) {
-      var string = ""+message.data;
-
-      $("#is_tacking").text(string);
-    });
-  })();
-
-  (function() { 
-    var topic = new ROSLIB.Topic({
-      ros : ros,
-      name : '/going_upwind',
-      messageType : 'std_msgs/Bool'
-    });
-
-    topic.subscribe(function(message) {
-      var string = ""+message.data;
-
-      $("#is_upwind").text(string);
-    });
-  })();
-
-  (function() { 
-    var topic = new ROSLIB.Topic({
-      ros : ros,
-      name : '/heading_err',
-      messageType : 'std_msgs/Int16'
-    });
-
-    topic.subscribe(function(message) {
-      var string = ""+message.data.toFixed(2);
-
-      $("#heading_err").text(string);
-    });
-  })();
-
-
 
 
   // Watchdog timers
@@ -249,10 +149,8 @@
   <hr>
   <h2>Internal state visualizations</h2>
   <div>Local position: <span class="numdisplay" id="local_pos">[data missing]</span></div>
-  <div>Sail position: <span class="numdisplay" id="sail_angle">[data missing]</span></div>
   <div>Rudder position: <span class="numdisplay" id="rudder_angle">[data missing]</span></div>
-  <div>True Wind: <span class="numdisplay" id="true_wind">[data missing]</span></div>
-  <div>Global Wind: <span class="numdisplay" id="global_wind">[data missing]</span></div>
+
   <!-- TODO: this should be loaded dynamically from an Inkscape/Illustrator file -->
   <svg
    width="700"
@@ -277,13 +175,6 @@
        transform="translate(400,100) scale(2)">
       <!-- Compass -->
         <image width="100" height="100" x="-50" y="-50" xlink:href="compass.svg"/>
-        <g
-        transform=""
-        id="windVector1">
-          <line x1="0" y1="0" 
-            x2="0" y2="-40"/>
-            <!-- This line points in the direction comes from, not where it is going -->
-        </g>
       </g>
     </g>
 
@@ -324,77 +215,18 @@
 
   <hr>
   <h2>Autonomy Internals</h2>
-
-  <div>Boat is tacking: <span class="numdisplay" id="is_tacking">[data missing]</span></div>
-  <div>Target is upwind: <span class="numdisplay" id="is_upwind">[data missing]</span></div>
-  <div>Heading error: <span class="numdisplay" id="heading_err">[data missing]</span></div>
   
   
 
   <hr>
+<!--
   <h2>Status</h2>
 
-<div class="statusRow">   
-<br>Sail Teensy: 
-<div style="background-position: -32px 0px;" id="sailstatus" class="statuslight"></div>
-<script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#sailstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Rudder Teensy: 
-<div style="background-position: -32px 0px;" id="rudderstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rudder/pos', 'std_msgs/Int16', $('#rudderstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>RC Teensy: 
-<div style="background-position: -32px 0px;" id="RCstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rc/debug_dial_in', 'std_msgs/Float32', $('#RCstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Hemisphere (+parsing): 
-<div style="background-position: -32px 0px;" id="hemispherestatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/hemisphere/fullmsg', 'std_msgs/String', $('#hemispherestatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Airmar (+parsing): 
-<div style="background-position: -32px 0px;" id="airmarstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/airmar/fullmsg', 'std_msgs/String', $('#airmarstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>RC code:  
-<div style="background-position: -32px 0px;" id="rc_modestatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rc_mode/rudder/set_point', 'std_msgs/Int16', $('#rc_modestatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Arbiter:  
-<div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rudder/set_point', 'std_msgs/Int16', $('#arbiterstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Sensor preprocessor:  
-<div style="background-position: -32px 0px;" id="sensorsstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/location', 'geometry_msgs/Pose2D', $('#sensorsstatus'))</script>
-</div>
-
-<div class="statusRow">   
-<br>Rudder_thinking:  
-<div style="background-position: -32px 0px;" id="rudderthinkingstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/heading_err', 'std_msgs/Int16', $('#rudderthinkingstatus'))</script>
-</div>
-
+	<div class="statusRow">   
+	<br>Sail Teensy: 
+	<div style="background-position: -32px 0px;" id="sailstatus" class="statuslight"></div>
+	<script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#sailstatus'))</script>
+	</div>
+-->
 </body>
 </html>
