@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 import rospy
+"""
+This file reads from:
+- heading_err (std_msgs/Int16)
+
+and publishes to:
+- auto_mode/rudder/set_point (std_msgs/Int16)
+
+"""
 
 # This line may need to change depending on your message types
 from std_msgs.msg import Int16, Float32
@@ -13,9 +21,10 @@ class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
 
 		# Step 2: Initialize subscribers. Each subscriber (incomming information) gets a "self.*" variable, a callback, and a subscriber
 		self.waypoint = 0
-		def callback(angle):
-			self.waypoint = angle.data
-		self.waypointAngleSub = rospy.Subscriber('heading_err', Int16, callback) #needs somewhere to get waypoint
+		self.waypointAngleSub = rospy.Subscriber('heading_err', Int16, self.onAngle)
+
+	def onAngle(msg):
+		self.waypoint = msg.data
 
 	def calculateRudderPosition(self, waypointAngle):
 		# Do your main logic in a separate function for cleanliness reasons.
