@@ -1,0 +1,12 @@
+<launch>
+    <arg name="olin_robotics" default="false" />
+    <env name="ROS_IP" value="192.168.17.130" if="$(arg olin_robotics)"/>
+
+
+    <node name="simulator" pkg="oars_pkg" type="simulator_roslink.py" />
+    <!-- More things need to be started here to run auto code -->
+    
+
+
+    <node name="websockets" pkg="rosbridge_server" type="rosbridge_websocket.py" />
+</launch>

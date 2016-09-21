@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<!--- This file came from http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality -->
+
+<script type="text/javascript" src="eventemitter2.min.js"></script>
+<script type="text/javascript" src="roslib.min.js"></script>
+<script type="text/javascript" src="jquery-2.2.2.js"></script>
+
+<link rel="stylesheet" href="stylesheet.css" type="text/css">
+
+<script type="text/javascript" type="text/javascript">
+  'use strict'
+  // Connecting to ROS
+  // -----------------
+
+  var rosIP = 'ws://' + prompt('ROS IP address', '192.168.17.130') + ':9090'
+  var ros = setupROS()
+
+  function setupROS() {
+    var ros = new ROSLIB.Ros({
+      url : rosIP
+    });
+
+    ros.on('connection', function() {
+      console.log('Connected to websocket server.');
+    });
+
+    ros.on('error', function(error) {
+      console.log('Error connecting to websocket server: ', error);
+      window.setTimeout(setupROS, 5000);
+    });
+
+    ros.on('close', function() {
+      console.log('Connection to websocket server closed.');
+      window.setTimeout(setupROS, 5000);
+    });
+
+    return ros
+  }
+
+  
+  // Publishing a Topic
+  // ------------------
+
+//   var cmdVel = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '/html_test_output',
+//     messageType : 'geometry_msgs/Twist'
+//   });
+
+//   var twist = new ROSLIB.Message({
+//     linear : {
+//       x : 0.1,
+//       y : 0.2,
+//       z : 0.3
+//     },
+//     angular : {
+//       x : -0.1,
+//       y : -0.2,
+//       z : -0.3
+//     }
+//   });
+//   cmdVel.publish(twist);
+
+  // Subscribing to Topics
+  // ----------------------
+
+
+// Location subscriber (handles local position)
+  var listenloc = new ROSLIB.Topic({
+    ros : ros,
+    name : '/location',
+    messageType : 'geometry_msgs/Pose2D'
+  });
+
+  listenloc.subscribe(function(message) {
+    var string=message.x.toFixed(2) +",\t\t"+ message.y.toFixed(2) +",\t\t"+ message.theta.toFixed(2);
+    //console.log('Received location : ' + string);
+
+
+
+    var scale=50
+    $("#local_pos").text(string);
+
+    var tx = ((message.x*scale+250)%500+500)%500
+    var ty = ((-message.y*scale+250)%500+500)%500
+    $("#localboatmap").attr("transform","translate("+tx+","+ty+"), rotate("+message.theta+")")
+  });
+
+
+
+  // Sail subscriber(s)
+  var listensail = new ROSLIB.Topic({
+    ros : ros,
+    name : '/sail/pos',
+    messageType : 'std_msgs/Float32'
+  });
+
+  listensail.subscribe(function(message) {
+    var string=message.data.toFixed(2);
+    //console.log('Received Sail : ' + string);
+
+    $("#sail_angle").text(string);
+
+    var angle=message.data*12; //This should be multiplied for real boat values.
+    $("#sailVis").attr("Transform","rotate("+angle+")")
+  });
+
+
+
+  // Rudder subscriber
+  var listenrudder = new ROSLIB.Topic({
+    ros : ros,
+    name : '/rudder/pos',
+    messageType : 'std_msgs/Int16'
+  });
+
+  listenrudder.subscribe(function(message) {
+    var string=message.data.toFixed(2);
+    //console.log('Received Rudder : ' + string);
+
+    $("#rudder_angle").text(string);
+
+    var angle = -message.data;
+    $("#rudderVis").attr("Transform","rotate("+angle+")")
+  });
+
+
+
+  // Wind subscribers
+
+    // True wind
+  var listentruewind = new ROSLIB.Topic({
+    ros : ros,
+    name : '/true_wind',
+    messageType : 'geometry_msgs/Pose2D'
+  });
+
+  listentruewind.subscribe(function(message) {
+    var string=message.x.toFixed(2)+"@"+message.theta.toFixed(2);
+
+    $("#true_wind").text(string);
+  });  
+
+    // Global wind
+  var listenglobalwind = new ROSLIB.Topic({
+    ros : ros,
+    name : '/global_wind',
+    messageType : 'geometry_msgs/Pose2D'
+  });
+
+  listenglobalwind.subscribe(function(message) {
+    var string=message.x.toFixed(2)+"@"+message.theta.toFixed(2);
+    //console.log('Received Rudder : ' + string);
+
+    $("#global_wind").text(string);
+
+     var angle=message.theta;
+     $("#windVector1").attr("Transform","rotate("+angle+")")
+  });
+
+
+  // Autonomy internals
+  // Note the use of an anonymous function to scope the topic variable locally
+  (function() { 
+    var topic = new ROSLIB.Topic({
+      ros : ros,
+      name : '/tacking',
+      messageType : 'std_msgs/Bool'
+    });
+
+    topic.subscribe(function(message) {
+      var string = ""+message.data;
+
+      $("#is_tacking").text(string);
+    });
+  })();
+
+  (function() { 
+    var topic = new ROSLIB.Topic({
+      ros : ros,
+      name : '/going_upwind',
+      messageType : 'std_msgs/Bool'
+    });
+
+    topic.subscribe(function(message) {
+      var string = ""+message.data;
+
+      $("#is_upwind").text(string);
+    });
+  })();
+
+  (function() { 
+    var topic = new ROSLIB.Topic({
+      ros : ros,
+      name : '/heading_err',
+      messageType : 'std_msgs/Int16'
+    });
+
+    topic.subscribe(function(message) {
+      var string = ""+message.data.toFixed(2);
+
+      $("#heading_err").text(string);
+    });
+  })();
+
+
+
+
+  // Watchdog timers
+  var setup_watchdog = function(topic, msgtype, element, validfunc) {
+    if (typeof validfunc == 'undefined') {
+      validfunc = function() {return true;}
+    }
+
+    var lastMessage = 0;
+
+    var sub = new ROSLIB.Topic({
+      ros : ros,
+      name : topic,
+      messageType : msgtype
+    });
+
+    sub.subscribe(function(message) {
+        if(validfunc(message))
+          lastMessage = new Date().getTime()
+      })
+
+    var update = function() {
+      var connected = (new Date().getTime() - lastMessage) < 2000;
+
+      var bp = connected ? "" : "-64px 0px";
+
+      element.css("background-position", bp);
+    }
+
+    window.setInterval(update, 500);
+    update()
+  }
+
+</script>
+</head>
+
+<body>
+  <h1>ORS Mission Control</h1>
+  <hr>
+  <h2>Internal state visualizations</h2>
+  <div>Local position: <span class="numdisplay" id="local_pos">[data missing]</span></div>
+  <div>Sail position: <span class="numdisplay" id="sail_angle">[data missing]</span></div>
+  <div>Rudder position: <span class="numdisplay" id="rudder_angle">[data missing]</span></div>
+  <div>True Wind: <span class="numdisplay" id="true_wind">[data missing]</span></div>
+  <div>Global Wind: <span class="numdisplay" id="global_wind">[data missing]</span></div>
+  <!-- TODO: this should be loaded dynamically from an Inkscape/Illustrator file -->
+  <svg
+   width="700"
+   height="500"
+   xmlns:xlink="http://www.w3.org/1999/xlink">
+   <g 
+    transform="translate(0,0)">
+      <!-- Local map view -->
+      <rect fill="#eef" x="0" y="0" width="500" height="500"/>
+      <g
+       transform=""
+       id="localboatmap">
+      <!-- Small boat for map view -->
+        <path
+           d="m 250,145 c 0,0 -29.27113,25.76104 -27.85714,102.14285 l 55,1e-5 C 278.80151,165.27089 250,145 250,145 z"
+           transform="translate(-250,-210)"
+           />
+         <circle style="fill:red;stroke:none", r="5px"/>
+      </g>
+
+       <g
+       transform="translate(400,100) scale(2)">
+      <!-- Compass -->
+        <image width="100" height="100" x="-50" y="-50" xlink:href="compass.svg"/>
+        <g
+        transform=""
+        id="windVector1">
+          <line x1="0" y1="0" 
+            x2="0" y2="-40"/>
+            <!-- This line points in the direction comes from, not where it is going -->
+        </g>
+      </g>
+    </g>
+
+   <g 
+    transform="translate(600,250)">
+      <!-- Boat detail view -->
+      <rect fill="#fee" x="-100" y="-250" width="200" height="500"/>
+
+      <g
+         transform="">
+        <!-- Large boat for detail view -->
+        <path
+           d="m 250,145 c 0,0 -29.27113,25.76104 -27.85714,102.14285 l 55,1e-5 C 278.80151,165.27089 250,145 250,145 z"
+           transform="scale(3) translate(-250,-210)"
+           style="fill:none;stroke:gray;stroke-width:2" />
+      </g>
+
+
+      <g transform="translate(0,-90)">
+        <!-- Sail line -->
+        <line x1="0" y1="0" 
+          x2="0" y2="150" 
+          id="sailVis"
+          transform=""/>
+      </g>
+
+
+      <g transform="translate(0, 110)">
+        <!-- Rudder line -->
+        <line x1="0" y1="0" 
+          x2="0" y2="70" 
+          id="rudderVis"
+          transform=""/>
+      </g>
+
+    </g>
+  </svg>
+
+  <hr>
+  <h2>Autonomy Internals</h2>
+
+  <div>Boat is tacking: <span class="numdisplay" id="is_tacking">[data missing]</span></div>
+  <div>Target is upwind: <span class="numdisplay" id="is_upwind">[data missing]</span></div>
+  <div>Heading error: <span class="numdisplay" id="heading_err">[data missing]</span></div>
+  
+  
+
+  <hr>
+  <h2>Status</h2>
+
+<div class="statusRow">   
+<br>Sail Teensy: 
+<div style="background-position: -32px 0px;" id="sailstatus" class="statuslight"></div>
+<script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#sailstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Rudder Teensy: 
+<div style="background-position: -32px 0px;" id="rudderstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rudder/pos', 'std_msgs/Int16', $('#rudderstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>RC Teensy: 
+<div style="background-position: -32px 0px;" id="RCstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rc/debug_dial_in', 'std_msgs/Float32', $('#RCstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Hemisphere (+parsing): 
+<div style="background-position: -32px 0px;" id="hemispherestatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/hemisphere/fullmsg', 'std_msgs/String', $('#hemispherestatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Airmar (+parsing): 
+<div style="background-position: -32px 0px;" id="airmarstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/airmar/fullmsg', 'std_msgs/String', $('#airmarstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>RC code:  
+<div style="background-position: -32px 0px;" id="rc_modestatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rc_mode/rudder/set_point', 'std_msgs/Int16', $('#rc_modestatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Arbiter:  
+<div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rudder/set_point', 'std_msgs/Int16', $('#arbiterstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Sensor preprocessor:  
+<div style="background-position: -32px 0px;" id="sensorsstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/location', 'geometry_msgs/Pose2D', $('#sensorsstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Rudder_thinking:  
+<div style="background-position: -32px 0px;" id="rudderthinkingstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/heading_err', 'std_msgs/Int16', $('#rudderthinkingstatus'))</script>
+</div>
+
+</body>
+</html>
