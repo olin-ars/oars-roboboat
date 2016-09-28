@@ -29,6 +29,9 @@ Give your key a descriptive title and paste your key into the "Key" field.
 
 Click the **Add SSH key** button and confirm your password if asked to.
 
-If you already have an SSH Key that you would rather use (instead of creating a new one), feel free to check out the links below.
+
+###If you already have an SSH Key that you would rather use (instead of creating a new one), feel free to check out the links below.
+
+
 
 This information was largely taken from GitHub's help documentation; specific pages can be found [here](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/) and [here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/).
