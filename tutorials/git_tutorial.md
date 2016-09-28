@@ -23,11 +23,11 @@ $ xclip -sel clip < ~/.ssh/id_rsa.pub
 ```
 At this point, you're ready to add the key to your GitHub account.
 
-Go to your profile settings and select _SSH and GPG keys_ from the sidebar on the left.
+Go to your profile settings and select *SSH and GPG keys* from the sidebar on the left.
 
 Give your key a descriptive title and paste your key into the "Key" field.
 
-Click the _Add SSH key_ button and confirm your password if asked to.
+Click the *Add SSH key* button and confirm your password if asked to.
 
 If you already have an SSH Key that you would rather use (instead of creating a new one), feel free to check out the links below.
 
