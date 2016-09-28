@@ -29,9 +29,16 @@ Give your key a descriptive title and paste your key into the "Key" field.
 
 Click the **Add SSH key** button and confirm your password if asked to.
 
-
 ###If you already have an SSH Key that you would rather use (instead of creating a new one), feel free to check out the links below.
 
-
-
 This information was largely taken from GitHub's help documentation; specific pages can be found [here](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/) and [here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/).
+
+###Adding the OARS repo
+
+If you haven't already cloned the OARS repo to your computer, do that now. Go to [the OARS git repo](https://github.com/olin-robotic-sailing/ors-git-repo) and click **Clone or download** on the right. Choose SSH rather than HTTPS and copy the link.
+
+Use your terminal to navigate to the local folder into which you want to clone the repo. Once there, type
+```
+$ git clone 
+```
+and paste the SSH at the end. Press enter and you will have a copy of the git repo locally accessible on your computer.
