@@ -35,7 +35,7 @@ This information was largely taken from GitHub's help documentation; specific pa
 
 ###Adding the OARS repo
 
-If you haven't already cloned the OARS repo to your computer, do that now. Go to [the OARS git repo](https://github.com/olin-robotic-sailing/ors-git-repo) and click **Clone or download** on the right. Choose SSH rather than HTTPS and copy the link.
+If you haven't already cloned the OARS repo to your computer, do that now. Go to this year's [OARS git repo](https://github.com/olin-robotic-sailing/oars-roboboat) and click **Clone or download** on the right. Choose SSH rather than HTTPS and copy the link.
 
 Use your terminal to navigate to the local folder into which you want to clone the repo. Once there, type
 ```
