@@ -6,6 +6,7 @@
     <node name="simulator" pkg="oars_pkg" type="simulator_roslink.py" />
     <!-- More things need to be started here to run auto code -->
     
+    <node name="motion_commander" pkg="oars_pkg" type="motion_commander.py" />
 
 
     <node name="websockets" pkg="rosbridge_server" type="rosbridge_websocket.py" />
