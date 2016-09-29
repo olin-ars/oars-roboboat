@@ -1,24 +1,15 @@
+#!/usr/bin/python2
 """Waypoint checker. Decides when a waypoint has been reached, based on the location of the boat."""
 
 import rospy
-import Pose2D from geometry_msgs.msgs
-import Bool   from std_msgs.msgs
+from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Bool
 import math
-
-rospy.init_node('waypoint_checker')
-pubReachedWP =  rospy.Publisher('reached_waypoint',Bool)
-subLocation  =  rospy.Subscriber('location',Pose2D,locationCallback)
-subNextWP    =  rospy.Subscriber('next_waypoint',Pose2D,nextWPCallback)
-subHasWP     =  rospy.Subscriber('has_waypoint',Bool,hasWPCallback)
-
-waypointRadius = 1 #meters
-
-nextWP = None #None if there is no next waypoint. Otherwise contains the target waypoint
 
 def locationCallback(location):
     """Callback for the location topic. Updates the reached_waypoint callback with true if the current target waypoint is within waypointRadius of the location """
     if nextWP is not None:
-        pubReadedWP.publish(Bool(getDistance(location,nextWP) < waypointRadius))
+        pubReachedWP.publish(Bool(getDistance(location,nextWP) < waypointRadius))
 
 
 def getDistance(location1, location2):
@@ -38,5 +29,15 @@ def hasWPCallback(exists):
     global nextWP
     if not exists.data:
         nextWP = None
+
+rospy.init_node('waypoint_checker')
+pubReachedWP =  rospy.Publisher('reached_waypoint',Bool,queue_size=10)
+subLocation  =  rospy.Subscriber('location',Pose2D,locationCallback)
+subNextWP    =  rospy.Subscriber('next_waypoint',Pose2D,nextWPCallback)
+subHasWP     =  rospy.Subscriber('has_waypoint',Bool,hasWPCallback)
+
+waypointRadius = 1 #meters
+
+nextWP = None #None if there is no next waypoint. Otherwise contains the target waypoint
 
 rospy.spin()
