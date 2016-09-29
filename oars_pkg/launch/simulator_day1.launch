@@ -7,6 +7,7 @@
     <!-- More things need to be started here to run auto code -->
     
 
+    <node name="waypoint_checker" pkg="oars_pkg" type="waypoint_checker.py" />
 
     <node name="websockets" pkg="rosbridge_server" type="rosbridge_websocket.py" />
 </launch>
