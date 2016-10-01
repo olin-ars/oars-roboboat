@@ -32,9 +32,13 @@ class WaypointManager:
         self.waypoint_queue = []
 
     def rm_waypoint_callback(self, msg):
+        if len(self.waypoint_queue) == 0:
+            return
         self.waypoint_queue.pop()
 
     def reached_waypoint_callback(self, msg):
+        if len(self.waypoint_queue) == 0:
+            return
         self.waypoint_queue.pop(0)
 
     def manage(self):
