@@ -6,40 +6,42 @@ from std_msgs.msg import Int16, Float32, Bool, String
 from geometry_msgs.msg import Pose2D, Vector3
 
 class WaypointManager:
-	def __init__(self):
-		self.waypoint_queue = []
+    def __init__(self):
+        self.waypoint_queue = []
 
-    new_waypoint = rospy.Subscriber('new_waypoint', Pose2D, self.new_waypoint_callback)
-    clear_waypoints = rospy.Subscriber('clear_waypoints', Pose2D, self.clear_waypoints_callback)
-    rm_waypoint = rospy.Subscriber('rm_waypoint', Pose2D, self.rm_waypoint_callback)
-    reached_waypoint = rospy.Subscriber('reached_waypoint', Pose2D, self.reached_waypoint_callback)
+        rospy.init_node('waypoint_manager')
 
-    self.next_waypoint = rospy.Publisher('next_waypoint', Pose2D, queue_size=1)
-    self.has_waypoint = rospy.Publisher('has_waypoint', Bool, queue_size=1)
+        new_waypoint = rospy.Subscriber('new_waypoint', Pose2D, self.new_waypoint_callback)
+        clear_waypoints = rospy.Subscriber('clear_waypoints', Bool, self.clear_waypoints_callback)
+        rm_waypoint = rospy.Subscriber('rm_waypoint', Bool, self.rm_waypoint_callback)
+        reached_waypoint = rospy.Subscriber('reached_waypoint', Bool, self.reached_waypoint_callback)
 
-  def run(self):
-    r = rospy.Rate(1)
-    while not rospy.is_shutdown():
-      self.manage()
-      r.sleep()
+        self.next_waypoint = rospy.Publisher('next_waypoint', Pose2D, queue_size=1)
+        self.has_waypoint = rospy.Publisher('has_waypoint', Bool, queue_size=1)
 
-	def new_waypoint_callback(self, waypoint):
-		self.waypoint_queue.append(waypoint)
+    def run(self):
+        r = rospy.Rate(1)
+        while not rospy.is_shutdown():
+            self.manage()
+            r.sleep()
 
-	def clear_waypoints_callback(self):
-		self.waypoint_queue = []
+    def new_waypoint_callback(self, waypoint):
+        self.waypoint_queue.append(waypoint)
 
-	def rm_waypoint_callback(self):
-		self.waypoint_queue.pop()
+    def clear_waypoints_callback(self, msg):
+        self.waypoint_queue = []
 
-	def reached_waypoint_callback(self):
-		self.waypoint_queue.pop(0)
+    def rm_waypoint_callback(self, msg):
+        self.waypoint_queue.pop()
 
-  def manage(self):
-    if self.waypoint_queue:
-      self.next_waypoint.publish(self.waypoint_queue[0])
-    self.has_waypoint.publish(bool(self.waypoint_queue))
+    def reached_waypoint_callback(self, msg):
+        self.waypoint_queue.pop(0)
+
+    def manage(self):
+        if self.waypoint_queue:
+            self.next_waypoint.publish(self.waypoint_queue[0])
+        self.has_waypoint.publish(bool(self.waypoint_queue))
 
 if __name__ == '__main__':
-  manager = WaypointManager()
-  manager.manage()
+    manager = WaypointManager()
+    manager.run()
