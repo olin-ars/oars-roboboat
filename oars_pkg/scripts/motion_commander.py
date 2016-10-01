@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import rospy
+import math
+
 """
 This file reads from:
 - next_waypoint_rel (geometry_msgs/Pose2D)
@@ -11,18 +13,18 @@ and publishes to:
 """
 
 from std_msgs.msg import Bool, Int16, Float32
-from geometry_msgs.msg import Pose2D, Twist
+from geometry_msgs.msg import Pose2D, Twist, Vector3
 
 class MotionCommander:
 
-	self.max_linear_velocity = 1 # 1 meter/second
-	self.max_angular_velocity = 6 # 6 degrees/second
+	max_linear_velocity = 1 # 1 meter/second
+	max_angular_velocity = 6 # 6 degrees/second
 
 	def __init__(self):
 		rospy.init_node('motion_commander')
 
 		# Step 1: Initialize publishers. These will be referred to later whenever data is transmitted.
-		self.cmd_velPub = rospy.Publisher('cmd_vel', Twist)
+		self.cmd_velPub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 
 		# Step 2: Initialize subscribers. Each subscriber (incomming information) gets a "self.*" variable, a callback, and a subscriber
 		self.next_waypoint_rel = Pose2D(0,0,0)
