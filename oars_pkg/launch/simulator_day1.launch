@@ -8,6 +8,8 @@
     
     <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py" />
 
+    <node name="waypoint_manager" pkg="oars_pkg" type="waypoint_manager.py" />
+
 	<node name="motion_commander" pkg="oars_pkg" type="motion_commander.py" />
 
     <node name="waypoint_checker" pkg="oars_pkg" type="waypoint_checker.py" />
