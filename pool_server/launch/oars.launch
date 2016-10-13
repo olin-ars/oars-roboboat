@@ -7,7 +7,7 @@
 	<arg name="output_frame" default="/camera" />
         <arg name="device" default="0" />
 
-          <node name="camera" pkg="cv_camera" type="cv_camera_node" output="screen" respawn="false" args="_device_id:=$(arg device) _camera_info_url:=$(find pool_server)/camera/camera.yaml"/>
+        <node name="camera" pkg="cv_camera" type="cv_camera_node" output="screen" respawn="false" args="_device_id:=$(arg device) _camera_info_url:=$(find pool_server)/calibration/camera.yaml"/>
 
 	<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame)" />        
 </launch>
