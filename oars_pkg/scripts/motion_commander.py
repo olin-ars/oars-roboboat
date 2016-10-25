@@ -31,7 +31,7 @@ class MotionCommander:
 		self.nextWaypointRelSub = rospy.Subscriber('next_waypoint_rel', Pose2D, self.onWaypoint)
 
 		self.has_waypoint = False
-		self.nextWaypointRelSub = rospy.Subscriber('has_waypoint', Bool, self.onWaypoint)
+		self.nextWaypointRelSub = rospy.Subscriber('has_waypoint', Bool, self.onHas)
 
 	def onWaypoint(self, msg):
 		self.next_waypoint_rel = msg
@@ -40,6 +40,9 @@ class MotionCommander:
 		self.has_waypoint = msg.data
 
 	def calcVelocity(self, next_waypoint_rel, has_waypoint):
+		if not self.has_waypoint:
+			return Twist(Vector3(0,0,0),Vector3(0,0,0))
+
 		# Calculate angular velocity
 		if next_waypoint_rel.theta > 20:
 			angularVel = 25
@@ -47,21 +50,25 @@ class MotionCommander:
 			angularVel = next_waypoint_rel.theta * self.max_angular_velocity / 30
 		
 		# Calculate linear velocity
-		distanceToWaypoint = math.sqrt( (next_waypoint_rel.x)^2 + (next_waypoint_rel.y)^2 )
+		distanceToWaypoint = math.sqrt( (next_waypoint_rel.x)**2 + (next_waypoint_rel.y)**2 )
 		if (distanceToWaypoint < 0.1): # TODO May not need
 			lvs = 0
 		else:
 			lvs = distanceToWaypoint / 2; # linear velocity scalar TODO Adjust
 
+		linearVel = lvs*next_waypoint_rel.x
+		linearVel = min(linearVel, self.max_linear_velocity)
+		linearVel = max(linearVel, -self.max_linear_velocity)
+
 		# Generate return object
-		cmd_vel = Twist( Vector3( lvs*next_waypoint_rel.x, 0, 0), Vector3( angularVel, 0, 0 ) )
+		cmd_vel = Twist( Vector3( linearVel, 0, 0), Vector3( angularVel, 0, 0 ) )
 
 		return cmd_vel
 
 	def run(self):
 		rate = rospy.Rate(50)  # 50hz refresh rate
 		while not rospy.is_shutdown():
-			cmd_vel = self.calcVelocity(self.next_waypoint_rel,self.has_waypoint)
+			cmd_vel = self.calcVelocity(self.next_waypoint_rel, self.has_waypoint)
 			
 			# This is where the actual publishing happens
 			self.cmd_velPub.publish(cmd_vel)

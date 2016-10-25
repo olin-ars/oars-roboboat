@@ -36,16 +36,18 @@ class relWaypointCalculator:#needs a topic to read in waypoint angle from
 
 		deltay = waypoint.y - location.y
 		deltax = waypoint.x - location.x
-		distance = math.sqrt(deltax^2 + deltay^2)
-		absAngle = math.atan2(deltay, deltax)
+		distance = math.sqrt(deltax**2 + deltay**2)
+		absAngle = math.atan2(deltax, deltay)*180/math.pi
 
-		while absAngle <= -180:
-			absAngle += 360
+		angle = absAngle - location.theta;
 
-		while absAngle > 180:
-			absAngle -= 360
+		while angle <= -180:
+			angle += 360
 
-		return Pose2D(distance, 0, absAngle)
+		while angle > 180:
+			angle -= 360
+
+		return Pose2D(distance, 0, angle)
 
 	def onLocation(self, msg):
 		self.relPub.publish(self.calculateRelativePosition(msg, self.next_waypoint))

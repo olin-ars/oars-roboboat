@@ -23,7 +23,7 @@ class ROShandler():
                                         Float32, self.onPower)
 
     def registerPubs(self):
-        self.locationPub = rospy.Publisher('location', Pose2D)
+        self.locationPub = rospy.Publisher('location', Pose2D, queue_size=10)
 
     def publish(self):
         def angleconvert(valin):

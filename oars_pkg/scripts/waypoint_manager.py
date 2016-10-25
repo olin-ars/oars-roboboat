@@ -29,17 +29,21 @@ class WaypointManager:
         self.waypoint_queue.append(waypoint)
 
     def clear_waypoints_callback(self, msg):
-        self.waypoint_queue = []
+        if msg.data:
+            self.waypoint_queue = []
 
     def rm_waypoint_callback(self, msg):
         if len(self.waypoint_queue) == 0:
             return
-        self.waypoint_queue.pop()
+        if msg.data:
+            self.waypoint_queue.pop()
 
     def reached_waypoint_callback(self, msg):
         if len(self.waypoint_queue) == 0:
             return
-        self.waypoint_queue.pop(0)
+
+        if msg.data:
+            self.waypoint_queue.pop(0)
 
     def manage(self):
         if self.waypoint_queue:
