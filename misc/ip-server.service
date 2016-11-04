@@ -1,0 +1,10 @@
+[Unit]
+Description=Local IP discovery service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /home/pi/catkin_ws/src/oars-roboboat/misc/IP-server.py
+
+[Install]
+WantedBy=multi-user.target
