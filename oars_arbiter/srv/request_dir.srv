@@ -1,0 +1,15 @@
+# service definition for requesting action from the arbiter
+# includes all possible arguments (speed, direction, rotation)
+
+#time that message is sent
+time stamp
+
+#string to identify the behaviour sending the request
+string sender
+
+# 101 element arrays representing different headings
+# dir (direction) is the "vote" for that heading (-1 to 1)
+float32[101] dir
+---
+#return a value to indicate success
+bool success
