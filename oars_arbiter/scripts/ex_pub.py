@@ -6,7 +6,7 @@ import rospy
 from oars_arbiter.voter import Voter_dir
 
 if __name__ == "__main__":
-    voter = Voter_dir() #define the voter
+    voter = Voter_dir('test voter') #define the voter
 
     # set vote values
     voter.dir_vote = [1]*101
