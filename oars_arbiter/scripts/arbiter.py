@@ -2,109 +2,51 @@
 
 import rospy
 
-from oars_arbiter.srv import *
+from request_handler import Arbiter_Request_Handler
 
-class Behavior():
+#maximum time between requests from a behavior
+TIMEOUT = rospy.Duration(1.2)
+
+class Arbiter(Arbiter_Request_Handler):
 	"""
-	Store action requests from a behavior
-	"""
-	def __init__(self, name):
-		""" 
-		stores the behavior's name and initializes requests
-		"""
-		self.name=name
-		self.clear()
-
-	def clear(self):
-		""" reset requests """
-		self.dir = [0]*101
-		self.speed = [100]*101
-		self.turn = [0]*51
-
-	def update_dir(self, dir_req):
-		""" updates the direction request """
-		self.dir = dir_req
-
-	def update_speed(self, speed_req):
-		""" updates the speed request """
-		self.speed = speed_req
-
-	def update_turn(self, turn_req):
-		""" updates the turn request """
-		self.turn = turn_req
-
-class Arbiter():
-	""" 
-	Gets inputs from each behavior in the form of service
-	requests. 
-	These requests contain arrays which represent votes for
-	each heading, the speed at those headings, and the
-	overall turn rate.
+	Combines various inputs for heading, speed, and turn rate
+	and publishes a final speed/heading request to /cmd_vel
 	"""
 	def __init__(self):
-		""" initializes node and sets up service handlers """
-		rospy.init_node("arbiter")
+		""" initializes node and starts the service handler """
+		rospy.init_node("arbiter") #initialize node
 
-		# Service handlers
-		rospy.Service('request_full', request_full, self.handle_full_request)
-		rospy.Service('request_dir', request_dir, self.handle_dir_request)
+		# run the request handler's init function
+		Arbiter_Request_Handler.__init__(self)
 
-		#dictionary of behaviors
-			# {behavior name : behavior class}
-		self.behaviors = {}
-
-
-	def handle_full_request(self, req):
-		""" 
-		receive an action request containing all possible information
+	def check_for_inactivity(self):
+		""" cycles through the behaviors to see if any have
+		become inactive
+		resets request to default for inactive behaviors
 		"""
-		sender = req.sender #string, name of sender
+		now = rospy.Time.now() #get current time
+		for behavior in self.behaviors.values(): #cycle through behaviors
+			time_since_update = now - behavior.last_update
+			#check if the behavior is active and if it has been longer than timeout
+			if behavior.updating and time_since_update > TIMEOUT:
+				behavior.clear() #reset request to default
+				behavior.updating=False #indicate behavior is inactive
 
-		# make sure sender is initialized
-		self.sender_check(sender)
-
-		# class holding the sender's request
-		behavior = self.behaviors[sender]
-
-		#update votes based on new input
-		behavior.update_dir(req.dir) #update direction request
-		behavior.update_speed(req.speed) #update speed request
-		behavior.update_turn(req.rotation) #update rotation request
-
-		return True #confirm request was received
-
-	def handle_dir_request(self, req):
-		""" 
-		receive an action request containing only a direction vote
-		"""
-		sender = req.sender #string, name of sender
-
-		# make sure sender is initialized
-		self.sender_check(sender)
-
-		# class holding the sender's request
-		behavior = self.behaviors[sender]
-
-		#update votes based on new input
-		behavior.update_dir(req.dir) #update direction request
-
-		return True #confirm request was received
-
-	def sender_check(self, sender):
-		"""
-		takes name of a sender and checks if it is already in
-		behaviours dictionary, if not, it adds the new sender
-		"""
-		if not self.behaviors.get(sender, 0): #check for existance
-			self.behaviors[sender] = Behavior(sender) #initialize sender
 
 	def main(self):
-		r = rospy.Rate(1)
+		""" main loop for arbiter, continually outputs final
+		commands for the boat """
+		r = rospy.Rate(1) #runrate in Hz
 		while not rospy.is_shutdown():
-			for key in self.behaviors.keys():
-				print self.behaviors[key].name
-				print self.behaviors[key].speed[0]
-			r.sleep()
+			self.check_for_inactivity() #check for inactive behaviors
+			
+			# print things out for testing
+			for behavior in self.behaviors.values():
+				if behavior.updating:
+					print behavior.name
+					print behavior.dir[0]
+			
+			r.sleep() #wait for next loop cycle
 
 if __name__ == "__main__":
 	arbiter = Arbiter()
