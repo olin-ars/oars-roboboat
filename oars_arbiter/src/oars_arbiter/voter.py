@@ -18,6 +18,9 @@ class Voter_full():
         self.vote = rospy.ServiceProxy('request_full', request_full)
 
         self.name = name
+        self.clear()
+
+    def clear(self):
         self.dir_vote = [0]*101
         self.speed_vote = [100]*101
         self.turn_vote = [0]*51
