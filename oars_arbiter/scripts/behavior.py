@@ -1,4 +1,5 @@
 import rospy
+import numpy as np
 
 class Behavior():
 	"""
@@ -15,9 +16,9 @@ class Behavior():
 
 	def clear(self):
 		""" reset requests """
-		self.dir = [0]*101
-		self.speed = [100]*101
-		self.turn = [0]*51
+		self.dir = np.zeros(101)
+		self.speed = np.ones(101)*100
+		self.turn = np.zeros(51)
 
 	def reg_update(self):
 		""" 
@@ -29,12 +30,12 @@ class Behavior():
 
 	def update_dir(self, dir_req):
 		""" updates the direction request """
-		self.dir = dir_req
+		self.dir = np.array(dir_req)
 
 	def update_speed(self, speed_req):
 		""" updates the speed request """
-		self.speed = speed_req
+		self.speed = np.array(speed_req)
 
 	def update_turn(self, turn_req):
 		""" updates the turn request """
-		self.turn = turn_req
+		self.turn = np.array(turn_req)
