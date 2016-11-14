@@ -54,7 +54,7 @@ class Arbiter(Arbiter_Request_Handler):
 			if behavior.updating:
 				#add up scaled votes from all active behaviors
 				dir_total += self.scale_votes(behavior.dir)
-		self.heading = np.argmax(dir_total) #find index of maximum
+		self.heading = int(np.argmax(dir_total)) #find index of maximum
 
 	def get_speed(self):
 		""" get the minimum speed vote for the current heading """
@@ -75,13 +75,29 @@ class Arbiter(Arbiter_Request_Handler):
 		""" combine turn rate requests and find most
 		prefered turn rate """
 		turn_total = np.zeros(51) #initialize sum array
-		turn_total[25] = .01 #weight no turn slightly
-		#TODO: make this weight turning towards heading slightly
+		turn_total[self.default_turn()] = .01 #weight turning towards heading slightly
 		for behavior in self.behaviors.values():
 			if behavior.updating:
 				#add turn votes for all active behaviors
 				turn_total += self.scale_votes(behavior.turn)
 		self.turn = np.argmax(turn_total) #find index of maximum
+
+	def default_turn(self):
+		""" find a default turn rate to turn towards the heading 
+			This function makes the boat tur sharply if the
+			heading is perpendicular to the direction of the boat
+			and not at all if the boat is going either forward or
+			backward
+		"""
+		if self.heading > 50:
+			x=100-self.heading
+			flip=-1
+		else:
+			x = self.heading
+			flip=1
+		if x < 25: turn = -(x/25.)**2*25
+		else: turn = x-50
+		return int(round(turn*flip+25))
 
 	def main(self):
 		""" main loop for arbiter, continually outputs final
@@ -94,7 +110,7 @@ class Arbiter(Arbiter_Request_Handler):
 			self.get_turn_rate() #calculate prefered turn rate
 
 			# print things out for testing
-			print 'heading', (self.heading-50)/50.
+			print '\nheading', (self.heading-50)/50.
 			print 'speed', self.speed
 			print 'turn', (self.turn-25)/25.
 			
