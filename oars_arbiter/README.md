@@ -14,10 +14,9 @@ There are various voter types so that you can pass the minimum amount of informa
 
 `Voter_full` takes all possible inputs. The votes are defined as follows:
 
-- `dir_vote`: direction vote (101 element array), on a scale from -1 to 1, where -1 will override all other behaviors and refuse to go there, while 1 will override all other behaviors and force the boat to go there. The 50th element is the vote for forward.
-  - note, we will have a way to deal with conflicting -1, and 1 votes, but in general, try to avoid actually voting at the extremes unless you have a really good reason.
+- `dir_vote`: direction vote (101 element array), on a scale from -1 to 1, where -1 will override all other behaviors and refuse to go there, while 1 will override all other behaviors and force the boat to go there. The 50th element is the vote for forward. The maximum value for obstacle avoid should be (-)0.99. This will mean that no combination of votes below 0.9 will override the obstacle avoid (for up to about 8 behaviors). So in general, votes should be between -0.9 and 0.9, and special cases can still override obstacle avoid with a vote over 0.99. The direction vote defaults to the most recent heading.
 - `speed_vote`: speed vote (101 element array), on a scale from 0 to 100. These votes are tied to the heading represented by their index. Once the heading is decided, only that heading's associated speed votes are considdered. Vote for the maximum speed that behavior is comfortable going at each heading because the minimum speed is chosen. Also, avoid 0 votes unless you actually don't want to move.
-- `turn_vote`: turn rate vote (51 element array), on the same -1 to 1 scale as the direction vote. the 25th element is the vote for continuing to point the same direction. If no one votes for a turn rate, the arbiter chooses it to turn towards the heading (aka point where we're going) (probably)
+- `turn_vote`: turn rate vote (51 element array), on the same -1 to 1 scale as the direction vote. the 25th element is the vote for continuing to point the same direction. If no one votes for a turn rate, the arbiter chooses it to turn towards the heading (aka point where we're going)
 
 ### Code Structure
 #### Services
