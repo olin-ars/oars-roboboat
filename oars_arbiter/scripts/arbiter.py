@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from geometry_msgs.msg import Twist
 import numpy as np
 from request_handler import Arbiter_Request_Handler
 
@@ -19,6 +20,10 @@ class Arbiter(Arbiter_Request_Handler):
 		self.heading = 50 #initialize heading to forward
 		self.speed = 0 #initialize speed to stopped
 		self.turn = 25
+
+		#Initialize ROS publisher
+		self.cmd_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
+		self.cmd_vel = Twist()
 
 		# run the request handler's init function
 		Arbiter_Request_Handler.__init__(self)
@@ -110,10 +115,12 @@ class Arbiter(Arbiter_Request_Handler):
 			self.get_turn_rate() #calculate prefered turn rate
 
 			# print things out for testing
-			print '\nheading', (self.heading-50)/50.
-			print 'speed', self.speed
-			print 'turn', (self.turn-25)/25.
+			self.cmd_vel.linear.x = self.speed*np.cos(np.pi*(self.heading-50)/50.)
+			self.cmd_vel.linear.y = self.speed*np.sin(np.pi*(self.heading-50)/50.)
+			self.cmd_vel.angular.z = (self.turn-25)/25.
 			
+			self.cmd_pub.publish(self.cmd_vel)
+
 			r.sleep() #wait for next loop cycle
 
 if __name__ == "__main__":
