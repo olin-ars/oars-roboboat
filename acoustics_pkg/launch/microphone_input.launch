@@ -1,0 +1,14 @@
+<launch>
+    <arg name="olin_robotics" default="false" />
+    <env name="ROS_IP" value="192.168.17.130" if="$(arg olin_robotics)"/>
+
+
+    <node name="mic_input" pkg="acoustics_pkg" type="microphone_roslink.py" />
+    </node>
+    
+    <node name="audio_capture" pkg="audio_capture" type="audio_capture" output="screen">
+    <param name="bitrate" value="128"/>
+    </node>
+
+
+</launch>
