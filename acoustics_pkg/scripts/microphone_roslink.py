@@ -1,20 +1,17 @@
 #! /usr/bin/python
 
-# import rospy
-# import audio_common_msgs
-
-# rospy.init_node('mic_input', anonymous=True)
-
-
+import rospy
 import roslaunch
 
-package = 'acoustics_pkg'
-executable = 'mic_input'
-node = roslaunch.core.Node(package, executable)
+class ROShandler():
+    """docstring for ROShandler"""
+    def __init__(self, model):
+		rospy.init_node('mic_input', anonymous=True)
+		rospy.on_shutdown(self.shutdown)
 
-launch = roslaunch.scriptapi.ROSLaunch()
-launch.start()
+		uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+		roslaunch.configure_logging(uuid)
+		launch = roslaunch.parent.ROSLaunchParent(uuid, ["/opt/ros/indigo/share/audio_capture/launch/capture.launch"])
 
-process = launch.launch(node)
-print process.is_alive()
-process.stop()
+		launch.start()
+		launch.shutdown()
