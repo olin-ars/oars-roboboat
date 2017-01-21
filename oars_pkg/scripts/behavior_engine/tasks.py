@@ -37,10 +37,12 @@ class TopicTask(Task):
 	def onDoneMessage(self, msg):
 		if msg.data == True and self.active:
 			self.stop()
-			runNextTask()
+			self.finishCallback()
 
-	def start(self):
+	def start(self, finishCallback):
 		self.active = True
+
+		self.finishCallback = finishCallback
 
 		self.activationPub.publish(Bool(True))
 		print("Starting task ({})".format(self.name))
@@ -57,29 +59,3 @@ class RCTask(TopicTask):
 	"""An RC Task triggers the RC code when it starts and never finishes"""
 	def __init__(self, name="Obey RC commands"):
 		super(RCTask, self).__init__(name, activationTopic="/RC_active")
-
-
-tasklist = [
-TopicTask("Test task", "/test_task_active", "/test_task_done"),
-RCTask()
-]
-
-activeTask = -1
-
-def runNextTask():
-	global activeTask
-	activeTask += 1
-
-	if activeTask < len(tasklist):
-		tasklist[activeTask].start()
-
-def test():
-	rospy.init_node('task_test_node')
-	# firsttask = TopicTask("Test task", "/test_task_active", "/test_task_done")
-	runNextTask()
-
-	rospy.spin()
-
-
-if __name__ == '__main__':
-	test()
