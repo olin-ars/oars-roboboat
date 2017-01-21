@@ -7,7 +7,11 @@ class Plan(object):
 		self.tasks = tasks
 
 
-RCtestPlan = Plan([
+rcTestPlan = Plan([
 					RCTask(),
+					NullTask(),
+					])
+
+nullPlan = Plan([
 					NullTask(),
 					])
