@@ -108,6 +108,7 @@ class Arbiter(Arbiter_Request_Handler):
 		""" main loop for arbiter, continually outputs final
 		commands for the boat """
 		r = rospy.Rate(1) #runrate in Hz
+		print "arbiter running"
 		while not rospy.is_shutdown():
 			self.check_for_inactivity() #check for inactive behaviors
 			self.get_direction() #calculate prefered heading
