@@ -27,20 +27,28 @@ class TopicTask(Task):
 		self.activationTopic = activationTopic
 		self.doneTopic = doneTopic
 
+		self.active = False
+
 		self.activationPub = rospy.Publisher(activationTopic, Bool, queue_size=10, latch=True)
 
 		if doneTopic:
 			self.doneSub = rospy.Subscriber(doneTopic, Bool, self.onDoneMessage)
 
 	def onDoneMessage(self, msg):
-		if msg.data == True:
+		if msg.data == True and self.active:
 			self.stop()
 
 	def start(self):
+		self.active = True
+
 		self.activationPub.publish(Bool(True))
+		print("Starting task ({})".format(self.name))
 
 	def stop(self):
+		self.active = False
+		
 		self.activationPub.publish(Bool(False))
+		print("Stopping task ({})".format(self.name))
 
 		
 
