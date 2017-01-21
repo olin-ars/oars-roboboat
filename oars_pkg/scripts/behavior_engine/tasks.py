@@ -37,6 +37,7 @@ class TopicTask(Task):
 	def onDoneMessage(self, msg):
 		if msg.data == True and self.active:
 			self.stop()
+			runNextTask()
 
 	def start(self):
 		self.active = True
@@ -46,7 +47,7 @@ class TopicTask(Task):
 
 	def stop(self):
 		self.active = False
-		
+
 		self.activationPub.publish(Bool(False))
 		print("Stopping task ({})".format(self.name))
 
@@ -54,28 +55,28 @@ class TopicTask(Task):
 
 class RCTask(TopicTask):
 	"""An RC Task triggers the RC code when it starts and never finishes"""
-	def __init__(self):
-		super(RCTask, self).__init__("Obey RC commands", activationTopic="triggerRC")
+	def __init__(self, name="Obey RC commands"):
+		super(RCTask, self).__init__(name, activationTopic="/RC_active")
 
 
-class NullTask(Task):
-	"""This task will not do anything when it triggers and never finish"""
-	def __init__(self):
-		super(NullTask, self).__init__("Null Task")
+tasklist = [
+TopicTask("Test task", "/test_task_active", "/test_task_done"),
+RCTask()
+]
 
+activeTask = -1
 
-class NavTask(Task):
-	"""This task will not do anything when it triggers and never finish"""
-	def __init__(self, destinationStr):
-		super(NavTask, self).__init__("Navigate to point", activationTopic="/start_navigation", doneTopic="/navigation_finished", hasData=True)
-		self.destination = destinationStr
+def runNextTask():
+	global activeTask
+	activeTask += 1
 
+	if activeTask < len(tasklist):
+		tasklist[activeTask].start()
 
 def test():
 	rospy.init_node('task_test_node')
-	firsttask = TopicTask("Test task", "/test_task_active", "/test_task_done")
-
-	firsttask.start()
+	# firsttask = TopicTask("Test task", "/test_task_active", "/test_task_done")
+	runNextTask()
 
 	rospy.spin()
 
