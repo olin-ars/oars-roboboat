@@ -4,6 +4,8 @@
 
 This arbiter is for an omni-directional boat, it controls heading, speed, and rotation rate. Heading is the first thing that is decided: each behavior indicates how preferable each heading is. These preferences are scaled based on weights for each behavior, then combined to find the overall most preferable heading. For each heading, each behavior indicates how fast it would like to go in that direction. After the heading is decided, the arbiter looks through all of the speed votes associated with that heading and takes the minimum. This way any behavior can dictate the actual speed of the boat. Finally, turn rate is an independent variable. Each behavior votes for various turn rates in a single array, using the same voting style as the heading votes, and the most prefered turn rate is chosen.
 
+![Diagram of arbiter functionality](arbiter_diagram.png)
+
 ### Usage:
 
 Run the arbiter script, then place votes using the helper functions which you can import in python using `from oars_arbiter.voter import <vote_type>`.
