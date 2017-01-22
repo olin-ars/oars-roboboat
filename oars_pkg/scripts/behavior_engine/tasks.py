@@ -24,6 +24,7 @@ class Task(object):
     def stop(self):
         print "Task {} finished".format(self.name)
         if self.active:
+            self.active = False
             self.finishCallback()
         else:
             print("WARNING: Task {} stop called on inactive task")
@@ -79,11 +80,11 @@ class DelayTask(Task):
         super(DelayTask, self).__init__('Time delay: {}s'.format(time))
 
         self.delayduration = time
-        self.timer = threading.Timer(self.delayduration, self.stop)
 
     def start(self, finishcallback):
         super(DelayTask, self).start(finishcallback)
 
+        self.timer = threading.Timer(self.delayduration, self.stop)
         self.timer.start()
 
     def stop(self):
