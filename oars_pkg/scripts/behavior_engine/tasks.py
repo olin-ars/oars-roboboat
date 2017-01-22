@@ -12,13 +12,20 @@ class Task(object):
 
         self.name = name
 
-    def start(self):
-        print("Error: start() not implemented for task " + self.name)
-        raise NotImplementedError
+        self.finishCallback = lambda: None
+        self.active = False
+
+    def start(self, finishcallback):
+        self.active = True
+        self.finishCallback = finishcallback
+        print("Task {} starting".format(self.name))
 
     def stop(self):
-        print("Error: stop() not implemented for task " + self.name)
-        raise NotImplementedError
+        print "Task {} finished".format(self.name)
+        if self.active:
+            self.finishCallback()
+        else:
+            print("WARNING: Task {} stop called on inactive task")
 
 
 class TopicTask(Task):
@@ -30,8 +37,6 @@ class TopicTask(Task):
         self.activationTopic = activationTopic
         self.doneTopic = doneTopic
 
-        self.active = False
-
         self.activationPub = rospy.Publisher(activationTopic, Bool, queue_size=10, latch=True)
 
         if doneTopic:
@@ -40,21 +45,16 @@ class TopicTask(Task):
     def onDoneMessage(self, msg):
         if msg.data == True and self.active:
             self.stop()
-            self.finishCallback()
 
-    def start(self, finishCallback):
-        self.active = True
-
-        self.finishCallback = finishCallback
-
+    def start(self, finishcallback):
         self.activationPub.publish(Bool(True))
-        print("Starting task ({})".format(self.name))
+
+        super(TopicTask, self).start(finishcallback)
 
     def stop(self):
-        self.active = False
-
         self.activationPub.publish(Bool(False))
-        print("Stopping task ({})".format(self.name))
+
+        super(TopicTask, self).stop()
 
 
 class RCTask(TopicTask):
