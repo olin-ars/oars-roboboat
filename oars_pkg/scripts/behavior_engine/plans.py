@@ -48,7 +48,9 @@ def test():
     rospy.init_node('task_test_node')
 
     plan = Plan([
-        TopicTask("Test task", "/test_task_active", "/test_task_done"),
+        SampleTask(),
+        DelayTask(2),
+        SampleTask(),
         RCTask()
     ])
 

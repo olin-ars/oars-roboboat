@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import threading
 
 import rospy
 from std_msgs.msg import Bool
@@ -62,3 +63,30 @@ class RCTask(TopicTask):
 
     def __init__(self, name="Obey RC commands"):
         super(RCTask, self).__init__(name, activationTopic="/RC_active")
+
+
+class SampleTask(TopicTask):
+    """A SampleTask interacts with the sample_task defined in this directory."""
+
+    def __init__(self, name="Sample Task"):
+        super(SampleTask, self).__init__(name, "/test_task_active", "/test_task_done"),
+
+
+class DelayTask(Task):
+    """A DelayTask simply pauses for the provided number of seconds before finishing"""
+
+    def __init__(self, time):
+        super(DelayTask, self).__init__('Time delay: {}s'.format(time))
+
+        self.delayduration = time
+        self.timer = threading.Timer(self.delayduration, self.stop)
+
+    def start(self, finishcallback):
+        super(DelayTask, self).start(finishcallback)
+
+        self.timer.start()
+
+    def stop(self):
+        self.timer.cancel()
+
+        super(DelayTask, self).stop()
