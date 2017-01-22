@@ -40,9 +40,9 @@ class TopicTask(Task):
         self.activationPub = rospy.Publisher(activationTopic, Bool, queue_size=10, latch=True)
 
         if doneTopic:
-            self.doneSub = rospy.Subscriber(doneTopic, Bool, self.onDoneMessage)
+            self.doneSub = rospy.Subscriber(doneTopic, Bool, self.donecallback)
 
-    def onDoneMessage(self, msg):
+    def donecallback(self, msg):
         if msg.data == True and self.active:
             self.stop()
 
