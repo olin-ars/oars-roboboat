@@ -1,7 +1,11 @@
 #!/usr/bin/python
 from tasks import *
 
+
 class Plan():
+    """
+    A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
+    """
     def __init__(self, tasklist):
         """
         :type tasklist: list of Task
@@ -25,10 +29,14 @@ class Plan():
             currenttask.stop()
 
     def skipcurrenttask(self):
+        """
+        Aborts the execution of the current task
+        """
         if self.active:
+            # Note that calling stop() on a task should always trigger the taskcompletioncallback,
+            # which increments the active task before continuing
+            # TODO: Consider creating an additional method to allow cleaning up a task without triggering the callback
             self.currenttask.stop()
-
-            self.startnexttask()
 
     def startnexttask(self):
         if self.numTasksCompleted >= len(self.tasklist):
@@ -41,7 +49,6 @@ class Plan():
         if self.active:
             self.numTasksCompleted += 1
             self.startnexttask()
-
 
 
 def test():
