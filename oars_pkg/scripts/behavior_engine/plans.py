@@ -1,26 +1,58 @@
 #!/usr/bin/python
 from tasks import *
 
-tasklist = [
-    TopicTask("Test task", "/test_task_active", "/test_task_done"),
-    RCTask()
-]
+class Plan():
+    def __init__(self, tasklist):
+        """
+        :type tasklist: list of Task
+        """
+        self.tasklist = tasklist
+        self.numTasksCompleted = 0
+        self.currenttask = None
+        self.active = False
 
-activeTask = -1
+    def execute(self):
+        if not self.active:
+            self.numTasksCompleted = 0
+            self.active = True
+            self.startnexttask()
 
+    def stop(self):
+        if self.active:
+            self.active = False
+            currenttask = self.tasklist[self.numTasksCompleted]
 
-def runNextTask():
-    global activeTask
-    activeTask += 1
+            currenttask.stop()
 
-    if activeTask < len(tasklist):
-        tasklist[activeTask].start(runNextTask)
+    def skipcurrenttask(self):
+        if self.active:
+            self.currenttask.stop()
+
+            self.startnexttask()
+
+    def startnexttask(self):
+        if self.numTasksCompleted >= len(self.tasklist):
+            self.active = False
+            return
+        self.currenttask = self.tasklist[self.numTasksCompleted]
+        self.currenttask.start(self.taskcompletioncallback)
+
+    def taskcompletioncallback(self):
+        if self.active:
+            self.numTasksCompleted += 1
+            self.startnexttask()
+
 
 
 def test():
     rospy.init_node('task_test_node')
-    # firsttask = TopicTask("Test task", "/test_task_active", "/test_task_done")
-    runNextTask()
+
+    plan = Plan([
+        TopicTask("Test task", "/test_task_active", "/test_task_done"),
+        RCTask()
+    ])
+
+    plan.execute()
 
     rospy.spin()
 

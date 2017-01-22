@@ -43,7 +43,7 @@ class TopicTask(Task):
             self.doneSub = rospy.Subscriber(doneTopic, Bool, self.donecallback)
 
     def donecallback(self, msg):
-        if msg.data == True and self.active:
+        if msg.data is True and self.active:
             self.stop()
 
     def start(self, finishcallback):
