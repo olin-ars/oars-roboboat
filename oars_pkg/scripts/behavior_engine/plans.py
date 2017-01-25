@@ -55,7 +55,7 @@ class Plan():
 
 
 def test():
-    rospy.init_node('task_test_node')
+    rospy.init_node('test_planner')
 
     plan = Plan('testplan',[
         SampleTask(),
