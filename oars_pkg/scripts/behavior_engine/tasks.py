@@ -1,8 +1,9 @@
 #!/usr/bin/python
 import threading
+from time import time, sleep
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 
 
 class Task(object):
@@ -73,6 +74,21 @@ class SampleTask(TopicTask):
         super(SampleTask, self).__init__(name, "/test_task_active", "/test_task_done"),
 
 
+class GPSNavigationTask(TopicTask):
+
+    def __init__(self, name="Navigation Task", destination=""):
+        super(GPSNavigationTask, self).__init__(name, activationTopic="/GPS_navigation_active", doneTopic="/GPS_navigation_done")
+        self.destinationPub = rospy.Publisher("/GPS_navigation_destination", String, queue_size=10)
+        self.destination = destination
+        
+        self.activation_delay = 0.1
+    
+    def start(self, finishcallback):
+        self.destinationPub.publish(String(self.destination))
+        sleep(self.activation_delay)
+        super(GPSNavigationTask, self).start(finishcallback)
+
+
 class DelayTask(Task):
     """A DelayTask simply pauses for the provided number of seconds before finishing"""
 
@@ -91,3 +107,4 @@ class DelayTask(Task):
         self.timer.cancel()
 
         super(DelayTask, self).stop()
+

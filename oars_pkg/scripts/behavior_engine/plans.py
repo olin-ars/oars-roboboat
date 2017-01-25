@@ -57,7 +57,7 @@ def test():
     plan = Plan([
         SampleTask(),
         DelayTask(2),
-        SampleTask(),
+        GPSNavigationTask('Navigate home', destination='home'),
         RCTask()
     ])
 
