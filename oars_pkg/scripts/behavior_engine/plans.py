@@ -1,15 +1,18 @@
 #!/usr/bin/python
 from tasks import *
 
+import getch
+
 
 class Plan():
     """
     A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
     """
-    def __init__(self, tasklist):
+    def __init__(self, name, tasklist):
         """
         :type tasklist: list of Task
         """
+        self.name = name
         self.tasklist = tasklist
         self.numTasksCompleted = 0
         self.currenttask = None
@@ -54,7 +57,7 @@ class Plan():
 def test():
     rospy.init_node('task_test_node')
 
-    plan = Plan([
+    plan = Plan('testplan',[
         SampleTask(),
         DelayTask(2),
         GPSNavigationTask('Navigate home', destination='home'),
@@ -66,5 +69,56 @@ def test():
     rospy.spin()
 
 
+alltheplans = [
+    Plan('thefirstplan', [
+        SampleTask(),
+        DelayTask(2),
+        GPSNavigationTask('Navigate home', destination='home'),
+        RCTask()
+    ]),
+    Plan('fastplan', [
+        DelayTask(2),
+    ]),
+
+
+]
+
+
+def main():
+    rospy.init_node('planner')
+
+    while True:
+        print('Which plan do you want to execute?')
+        for i, plan in enumerate(alltheplans):
+            print '\t{}.  {}'.format(i+1, plan.name)
+        currPlan = int(raw_input())-1
+
+        alltheplans[currPlan].execute()
+
+        r = rospy.Rate(100)
+
+        plan = alltheplans[currPlan]
+
+        while True:
+            key = getch.getch()
+
+            if key == 'x':
+                plan.stop()
+                return
+
+            if key == '\x03':
+                plan.stop()
+                return
+
+            if plan.active == False:
+                break
+
+            if rospy.is_shutdown():
+                plan.stop()
+                return
+
+            r.sleep()
+
+
 if __name__ == '__main__':
-    test()
+    main()
