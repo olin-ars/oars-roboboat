@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import rospy
-import serial
-import sys
 from std_msgs.msg import Int16, Float32, Bool, String
 from geometry_msgs.msg import Pose2D, Vector3
 
