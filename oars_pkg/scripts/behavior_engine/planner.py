@@ -1,4 +1,10 @@
 #!/usr/bin/python
+"""
+This is the main ROS node for the planner. It is intended to be run
+on the command line or a roslaunch file.
+It takes in one optional ROS parameter, plan_name, which specifies
+the plan to run. If blank, it asks the user for command line input.
+"""
 import thread
 import time
 
@@ -6,6 +12,9 @@ import rospy
 
 from plans import plans
 from getch import getch
+
+rospy.init_node('planner')
+configured_plan = rospy.get_param('~plan_name', '')
 
 
 def killonkey(cleanup):
@@ -17,15 +26,24 @@ def killonkey(cleanup):
 
 
 def main():
-    rospy.init_node('planner')
+    if configured_plan == '':
+        print('Which plan do you want to execute?')
+        for i, plan in enumerate(plans):
+            print '\t{}.  {}'.format(i+1, plan.name)
+        curr_plan = int(raw_input())-1
 
-    print('Which plan do you want to execute?')
-    for i, plan in enumerate(plans):
-        print '\t{}.  {}'.format(i+1, plan.name)
-    curr_plan = int(raw_input())-1
+        plan = plans[curr_plan]
 
-    plan = plans[curr_plan]
+    else:
+        plan = None
+        for p in plans:
+            if p.name == configured_plan:
+                plan = p
+        if not plan:
+            print('No plan found with that name!')
+            return
 
+    print('Running plan "{}", press the "x" key at any time to abort.'.format(plan.name))
     plan.execute()
 
     def cleanup():
@@ -33,7 +51,7 @@ def main():
         if plan.active:
             plan.stop()
             time.sleep(0.5)
-        exit()
+        exit(0)
 
     rospy.on_shutdown(cleanup)
 
