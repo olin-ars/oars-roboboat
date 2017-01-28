@@ -20,15 +20,15 @@ class Task(object):
     def start(self, finishcallback):
         self.active = True
         self.finishCallback = finishcallback
-        print("Task {} starting".format(self.name))
+        print("\rTask {} starting\r".format(self.name))
 
     def stop(self):
-        print "Task {} finished".format(self.name)
+        print "\rTask {} finished\r".format(self.name)
         if self.active:
             self.active = False
             self.finishCallback()
         else:
-            print("WARNING: Task {} stop called on inactive task")
+            print("\rWARNING: Task {} stop called on inactive task\r")
 
 
 class TopicTask(Task):

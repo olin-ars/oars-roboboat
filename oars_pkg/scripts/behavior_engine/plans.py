@@ -1,7 +1,11 @@
 #!/usr/bin/python
+import thread
+
+import time
+
 from tasks import *
 
-import getch
+from getch import getch
 
 
 class Plan():
@@ -84,40 +88,47 @@ alltheplans = [
 ]
 
 
+def killonkey(cleanup):
+    while True:
+        key = getch()
+
+        if key == 'x' or key == '\x03':
+            cleanup()
+
 def main():
     rospy.init_node('planner')
 
+    print('Which plan do you want to execute?')
+    for i, plan in enumerate(alltheplans):
+        print '\t{}.  {}'.format(i+1, plan.name)
+    currPlan = int(raw_input())-1
+
+    plan = alltheplans[currPlan]
+
+    plan.execute()
+
+    def cleanup():
+        getch.cleanup()
+        if plan.active:
+            plan.stop()
+            time.sleep(0.5)
+        exit()
+
+    rospy.on_shutdown(cleanup)
+
+    thread.start_new(killonkey, (cleanup,))
+
+    r = rospy.Rate(1000)
     while True:
-        print('Which plan do you want to execute?')
-        for i, plan in enumerate(alltheplans):
-            print '\t{}.  {}'.format(i+1, plan.name)
-        currPlan = int(raw_input())-1
+        if plan.active == False:
+            break
 
-        alltheplans[currPlan].execute()
+        if rospy.is_shutdown():
+            break
 
-        r = rospy.Rate(100)
+        r.sleep()
 
-        plan = alltheplans[currPlan]
-
-        while True:
-            key = getch.getch()
-
-            if key == 'x':
-                plan.stop()
-                return
-
-            if key == '\x03':
-                plan.stop()
-                return
-
-            if plan.active == False:
-                break
-
-            if rospy.is_shutdown():
-                plan.stop()
-                return
-
-            r.sleep()
+    cleanup()
 
 
 if __name__ == '__main__':
