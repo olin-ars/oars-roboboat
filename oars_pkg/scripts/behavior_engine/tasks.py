@@ -1,79 +1,20 @@
-#!/usr/bin/python
+"""
+This file contains mission-specific Task definitions. Task developers
+should modify this file to have a class representing their functionality.
+"""
 import threading
-from time import time, sleep
+from time import sleep
 
-import rospy
-from std_msgs.msg import Bool, String
+from std_msgs.msg import String
 
-
-class Task(object):
-    """Task is the base class for anything that can go in a plan"""
-
-    def __init__(self, name):
-        super(Task, self).__init__()
-
-        self.name = name
-
-        self.finishCallback = lambda: None
-        self.active = False
-
-    def start(self, finishcallback):
-        """
-        Starts the task
-        :param finishcallback: A function that will be called when self.stop() is called
-        """
-        self.active = True
-        self.finishCallback = finishcallback
-        print("\rTask {} starting\r".format(self.name))
-
-    def stop(self):
-        """
-        Stops the task and calls the function passed to start()
-        """
-        print "\rTask {} finished\r".format(self.name)
-        if self.active:
-            self.active = False
-            if self.finishCallback:
-                self.finishCallback()
-        else:
-            print("\rWARNING: Task {} stop called on inactive task\r")
+from objects import *
 
 
-class TopicTask(Task):
-    """A TopicTask is a task that writes to ROS topics when it starts and stops"""
+class SampleTask(TopicTask):
+    """A SampleTask interacts with the sample_task defined in this directory."""
 
-    def __init__(self, name, activationTopic="", doneTopic=""):
-        """
-        :param activationTopic: The ROS topic name (of type std_msgs/Bool)
-            that this Task will publish to when it starts or stops
-        :param doneTopic: The ROS topic name (of type std_msgs/Bool) that this
-            task will stop when it recieves a "True" from
-        """
-        super(TopicTask, self).__init__(name)
-
-        self.activationTopic = activationTopic
-        self.doneTopic = doneTopic
-
-        self.activationPub = rospy.Publisher(activationTopic, Bool, queue_size=10, latch=True)
-
-        if doneTopic:
-            self.doneSub = rospy.Subscriber(doneTopic, Bool, self.donecallback)
-
-    def donecallback(self, msg):
-        if msg.data is True and self.active:
-            self.stop()
-
-    def start(self, finishcallback):
-        """ Sends a True message to activationTopic and starts the task """
-        self.activationPub.publish(Bool(True))
-
-        super(TopicTask, self).start(finishcallback)
-
-    def stop(self):
-        """ Sends a False message to activationTopic and stops the task"""
-        self.activationPub.publish(Bool(False))
-
-        super(TopicTask, self).stop()
+    def __init__(self, name="Sample Task"):
+        super(SampleTask, self).__init__(name, "/test_task_active", "/test_task_done"),
 
 
 class RCTask(TopicTask):
@@ -83,12 +24,7 @@ class RCTask(TopicTask):
         super(RCTask, self).__init__(name, activationTopic="/RC_active")
 
 
-class SampleTask(TopicTask):
-    """A SampleTask interacts with the sample_task defined in this directory."""
-
-    def __init__(self, name="Sample Task"):
-        super(SampleTask, self).__init__(name, "/test_task_active", "/test_task_done"),
-
+# YOUR TASKS HERE
 
 class GPSNavigationTask(TopicTask):
 
