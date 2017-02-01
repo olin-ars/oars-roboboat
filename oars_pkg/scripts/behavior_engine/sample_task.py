@@ -1,6 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+"""
+This node...
+"""
 
-import rospy, time
+import rospy
 from std_msgs.msg import Bool
 
 rospy.init_node('sample_task_node')
@@ -19,6 +22,7 @@ class Main(object):
     def onEnable(self, msg):
         if msg.data == True:
             self.running = True
+            # Initialize values here
             self.i = 0
         else:
             self.running = False
@@ -31,6 +35,7 @@ class Main(object):
 
         while not rospy.is_shutdown():
             if self.running:
+                # Do work of being a node here
                 self.i += 1
                 print("I'm running! {}".format(self.i))
 
