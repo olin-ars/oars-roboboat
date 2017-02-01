@@ -89,7 +89,7 @@ class Arbiter(Arbiter_Request_Handler):
 
 	def default_turn(self):
 		""" find a default turn rate to turn towards the heading 
-			This function makes the boat tur sharply if the
+			This function makes the boat turn sharply if the
 			heading is perpendicular to the direction of the boat
 			and not at all if the boat is going either forward or
 			backward

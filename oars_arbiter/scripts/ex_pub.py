@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     # set vote values
     voter.dir_vote = [.8]*101
-    voter.dir_vote[40] = 0.86
+    voter.dir_vote[50] = 0.86
     voter.speed_vote = [40]*101
     #voter.turn_vote = [0.1]*51
     #voter.turn_vote[22] = 0.2
