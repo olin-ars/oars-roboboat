@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   geometry_msgs
   message_generation
+  nmea_navsat_driver
 )
 
 ## System dependencies are found with CMake's conventions
