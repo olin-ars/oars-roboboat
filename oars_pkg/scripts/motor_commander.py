@@ -10,27 +10,26 @@ and publishes to:
 """
 
 # This line may need to change depending on your message types
-from std_msgs.msg import Int16, Float32
+from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
 
 
 class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
     def __init__(self):
-        rospy.init_node('rudder_publisher')
+        rospy.init_node('motor_publisher')
 
         # Step 1: Initialize publishers. This will be referred to later whenever data is transmitted.
         self.rudderPub = rospy.Publisher('rudder_angle', Float32, queue_size=10)
-        self.powerPub = rospy.Publisher('propeller_power', Float32, queue_size=10)
+        self.powerPub = rospy.Publisher('motor_power', Float32, queue_size=10)
 
         # Step 2: Initialize subscribers. Each subscriber (incomming information) gets a "self.*" variable, a callback, and a subscriber
         self.velocity = 0
         self.anglevelocity = 0
-        self.waypointAngleSub = rospy.Subscriber('cmd_vel', Twist, self.onAngle)
+        self.targetVelSub = rospy.Subscriber('cmd_vel', Twist, self.onVel)
 
-    def onAngle(self, msg):
+    def onVel(self, msg):
         self.velocity = msg.linear.x
         self.anglevelocity = msg.angular.x
-        
 
     def calculatePropellerPower(self, velocity):
         # Do your main logic in a separate function for cleanliness reasons.
@@ -42,18 +41,18 @@ class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
     def calculateRudderAngle(self, anglevelocity):
         return anglevelocity * 20
 
-
     def run(self):
         rate = rospy.Rate(10)  # 10hz refresh rate
         while not rospy.is_shutdown():
             power = self.calculatePropellerPower(self.velocity)
             ang = self.calculateRudderAngle(self.anglevelocity)
-            
+
             # This is where the actual publishing happens
             self.powerPub.publish(power)
             self.rudderPub.publish(ang)
 
             rate.sleep()
+
 
 if __name__ == '__main__':
     try:
