@@ -2,10 +2,11 @@
 import rospy
 """
 This file reads from:
-- heading_err (std_msgs/Int16)
+- cmd_vel (geometry_msgs/Twist)
 
 and publishes to:
-- auto_mode/rudder/set_point (std_msgs/Int16)
+- rudder_angle (std_msgs/Float32)
+- motor_power (std_msgs/Float32)
 
 """
 
