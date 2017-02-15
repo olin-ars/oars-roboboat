@@ -2,15 +2,17 @@
     <!-- Include other files -->
     <include file="$(find oars_pkg)/launch/bringup_hardware.launch"/>
 
-    <!-- Launch Arbiter and Decision Enginer -->
+    <!-- Launch Arbiter and Behavior Enginer -->
     <node name="arbiter" pkg="oars_arbiter" type="arbiter.py" />
-
+    <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
 
     <!-- Hindbrain stuff -->
     <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py" />
 
     <!-- RC code -->
+    <node name="joystick_raw" pkg="joy" type="joy_node"/>
+    <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py"/>
 
-
+    <!-- TODO: Autonomous behaviors -->
 
 </launch>

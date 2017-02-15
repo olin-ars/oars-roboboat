@@ -29,7 +29,7 @@ class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
 
     def onAngle(self, msg):
         self.velocity = msg.linear.x
-        self.anglevelocity = msg.angular.x
+        self.anglevelocity = msg.angular.z
         
 
     def calculatePropellerPower(self, velocity):
@@ -44,7 +44,7 @@ class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
 
 
     def run(self):
-        rate = rospy.Rate(10)  # 10hz refresh rate
+        rate = rospy.Rate(100)  # 100hz refresh rate
         while not rospy.is_shutdown():
             power = self.calculatePropellerPower(self.velocity)
             ang = self.calculateRudderAngle(self.anglevelocity)
