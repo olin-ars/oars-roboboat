@@ -1,0 +1,10 @@
+<launch>
+    <arg name="olin_robotics" default="false" />
+    <env name="ROS_IP" value="192.168.17.130" if="$(arg olin_robotics)"/>
+
+    <!-- Teensy connection code -->
+    <node name="rosserial_wrapper" pkg="oars_pkg" type="rosserial_wrapper.py" />
+
+    <!-- TODO: USB sensors -->
+
+</launch>
