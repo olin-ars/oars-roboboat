@@ -41,13 +41,13 @@ class Arbiter(Arbiter_Request_Handler):
 				behavior.clear() #reset request to default
 				behavior.updating=False #indicate behavior is inactive
 
-	def scale_votes(self, votes):
+	def scale_votes(self, votes, weight):
 		""" function for converting votes from the -1:1 scale 
 		to a -inf:inf scale (I promise, this is a real function)
 		"""
 		pos = np.abs(votes)
 		scaled_pos = (1+pos)/(1-pos)-1
-		scaled = np.sign(votes)*scaled_pos
+		scaled = np.sign(votes)*scaled_pos*weight
 		return scaled
 
 	def get_direction(self):
@@ -58,7 +58,7 @@ class Arbiter(Arbiter_Request_Handler):
 		for behavior in self.behaviors.values():
 			if behavior.updating:
 				#add up scaled votes from all active behaviors
-				dir_total += self.scale_votes(behavior.dir)
+				dir_total += self.scale_votes(behavior.dir, behavior.weight)
 		self.heading = int(np.argmax(dir_total)) #find index of maximum
 
 	def get_speed(self):
@@ -84,7 +84,7 @@ class Arbiter(Arbiter_Request_Handler):
 		for behavior in self.behaviors.values():
 			if behavior.updating:
 				#add turn votes for all active behaviors
-				turn_total += self.scale_votes(behavior.turn)
+				turn_total += self.scale_votes(behavior.turn, behavior.weight)
 		self.turn = np.argmax(turn_total) #find index of maximum
 
 	def default_turn(self):

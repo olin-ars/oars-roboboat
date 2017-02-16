@@ -16,6 +16,7 @@ class Arbiter_Request_Handler():
 		# Service handlers
 		rospy.Service('request_full', request_full, self.handle_full_request)
 		rospy.Service('request_dir', request_dir, self.handle_dir_request)
+		rospy.Service('update_weight', update_weight, self.handle_weight_request)
 
 		#dictionary of behaviors
 			# {behavior name : behavior class}
@@ -40,6 +41,9 @@ class Arbiter_Request_Handler():
 		behavior.update_speed(req.speed) #update speed request
 		behavior.update_turn(req.rotation) #update rotation request
 
+		#for testing that the correct weight is being updated
+		#print behavior.weight
+
 		return True #confirm request was received
 
 	def handle_dir_request(self, req):
@@ -62,6 +66,15 @@ class Arbiter_Request_Handler():
 
 		return True #confirm request was received
 
+	def handle_weight_request(self, req):
+		target = req.target
+		self.sender_check(target)
+
+		behavior = self.behaviors[target]
+
+		behavior.update_weight(req.weight)
+		return True
+
 	def sender_check(self, sender):
 		"""
 		takes name of a sender and checks if it is already in
@@ -69,3 +82,4 @@ class Arbiter_Request_Handler():
 		"""
 		if not self.behaviors.get(sender, 0): #check for existance
 			self.behaviors[sender] = Behavior(sender) #initialize sender
+		

@@ -16,7 +16,7 @@ class JoyController(object):
 		rospy.Subscriber('/joy', Joy, self.joy_cb)
 		self.estop_pub = rospy.Publisher('/estop', Bool, queue_size=0)
 
-		self.voter=Voter_full()
+		self.voter=Voter_full('joystick')
 		self.direction = 0
 		self.speed = 0
 		self.rotation = 0

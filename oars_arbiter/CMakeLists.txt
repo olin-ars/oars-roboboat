@@ -56,6 +56,7 @@ add_service_files(
     FILES
     request_full.srv
     request_dir.srv
+    update_weight.srv
 )
 
 ## Generate actions in the 'action' folder

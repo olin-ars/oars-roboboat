@@ -12,6 +12,7 @@ class Behavior():
 		self.updating = False
 		self.last_update = rospy.Time.now()
 		self.name=name
+		self.weight=1
 		self.clear()
 
 	def clear(self):
@@ -39,3 +40,6 @@ class Behavior():
 	def update_turn(self, turn_req):
 		""" updates the turn request """
 		self.turn = np.array(turn_req)
+
+	def update_weight(self, new_weight):
+		self.weight=new_weight

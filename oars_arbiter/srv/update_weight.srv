@@ -1,0 +1,11 @@
+# service definition for updating a behavior's weight in the arbiter
+
+#string to identify the behavior to be updated
+string target
+
+# new weight for the behavior
+float32 weight
+
+---
+#return a value to indicate success
+bool success
