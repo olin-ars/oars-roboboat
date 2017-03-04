@@ -8,14 +8,16 @@ from time import sleep
 
 activeShells = {}
 
+PATHS = ['/dev/tty{}{}'.format(s, i) for s in ['ACM', 'USB'] for i in range(4)]
+
 
 def getIP():
     return subprocess.check_output(['hostname', '--all-ip-addresses']).strip()
 
 
 def run_rosserial(port='/dev/ttyACM0'):
-    if (not os.path.exists(port)):
-        return None;
+    if not os.path.exists(port):
+        return None
 
     command = 'export ROS_NAMESPACE={ns};\
     rosrun rosserial_python serial_node.py {port}'.format(ns=port.split('/')[-1], port=port)
@@ -31,8 +33,7 @@ def refreshShells():
             # The shell has finished
             del activeShells[k]
 
-    for i in range(4):
-        path = '/dev/ttyACM{}'.format(i)
+    for path in PATHS:
 
         if path in activeShells:
             print 'ROSserial running on {}'.format(path)
@@ -59,7 +60,7 @@ def main():
     try:
         while True:
             refreshShells()
-            sleep(3)
+            sleep(5)
     except Exception, e:
         raise e
     finally:
