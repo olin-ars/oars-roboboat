@@ -12,11 +12,7 @@
  * http://www.arduino.cc/en/Reference/Servo
  */
 
-#if (ARDUINO >= 100)
- #include <Arduino.h>
-#else
- #include <WProgram.h>
-#endif
+#include <Arduino.h>
 
 #include <Servo.h> 
 #include <ros.h>
@@ -30,10 +26,17 @@ long lastMessageMillis = -1e5;
 
 ros::NodeHandle  nh;
 
-Servo rudder;
+const int LEGAL_RUDDER_RANGE = 60;
+const int RUDDER_CENTER = 90;
 
+Servo rudder;
 void rudder_cb( const std_msgs::Float32& cmd_msg){
   int angle = cmd_msg.data + 90;
+  if (angle < RUDDER_CENTER - LEGAL_RUDDER_RANGE)
+    angle = RUDDER_CENTER - LEGAL_RUDDER_RANGE;
+  if (angle > RUDDER_CENTER + LEGAL_RUDDER_RANGE)
+    angle = RUDDER_CENTER + LEGAL_RUDDER_RANGE;
+
   rudder.write(angle);
   lastMessageMillis = millis();
 }
