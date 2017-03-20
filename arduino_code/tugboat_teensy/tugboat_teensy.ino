@@ -23,6 +23,7 @@
 #include <std_msgs/Float32.h>
 
 bool do_blink = true;
+long lastMessageMillis = 0;
 
 ros::NodeHandle  nh;
 
@@ -30,8 +31,8 @@ Servo servo;
 
 void servo_cb( const std_msgs::Float32& cmd_msg){
   int angle = cmd_msg.data + 90;
-  servo.write(angle); //set servo angle, should be from 0-180  
-  digitalWrite(13, HIGH-digitalRead(13));  //toggle led  
+  servo.write(angle); //set servo angle, should be from 0-180
+  lastMessageMillis = millis();
 }
 
 
@@ -47,9 +48,20 @@ void setup(){
 }
 
 void loop(){
-  if (do_blink){
-    digitalWrite(13, millis() % 1000 < 500);
-  }
+  handleStatusLED();
   nh.spinOnce();
   delay(1);
 }
+
+void handleStatusLED(){
+  const byte LED_PIN = 13;
+  long t = millis();
+  bool do_blink = (t - lastMessageMillis) > 200;
+  if (do_blink){
+    digitalWrite(LED_PIN, (t % 400) < 200);
+  }else{
+    digitalWrite(LED_PIN, HIGH);
+  }
+  
+}
+
