@@ -1,10 +1,10 @@
 <launch>
-	<arg name="marker_size" default="4.4" />
+	<arg name="marker_size" default="19" />
 	<arg name="max_new_marker_error" default="0.08" />
-	<arg name="max_track_error" default="0.2" />
-	<arg name="cam_image_topic" default="/camera/image_color" />
+	<arg name="max_track_error" default="0.5" />
+	<arg name="cam_image_topic" default="/camera/image_raw" />
 	<arg name="cam_info_topic" default="/camera/camera_info" />
-	<arg name="output_frame" default="/camera" />
+	<arg name="output_frame" default="camera" />
     <arg name="device" default="0" />
 
 	<arg name="camera_serial" default="0" />
@@ -32,7 +32,7 @@
         <param name="shutter_speed" value="0.004058" />
 
         <param name="camera_info_url" if="$(arg calibrated)"
-               value="file://$(env HOME)/.ros/camera_info/$(arg camera_serial).yaml" />
+               value="file://$(find pool_server)/calibration/$(arg camera_serial).yaml" />
       </node>
 
       <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
