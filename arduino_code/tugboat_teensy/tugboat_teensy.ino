@@ -29,9 +29,11 @@ ros::NodeHandle  nh;
 const int LEGAL_RUDDER_RANGE = 60;
 const int RUDDER_CENTER = 90;
 
+const float RUDDER_SCALING = 2.0;
+
 Servo rudder;
 void rudder_cb( const std_msgs::Float32& cmd_msg){
-  int angle = cmd_msg.data + 90;
+  int angle = -cmd_msg.data*RUDDER_SCALING + RUDDER_CENTER;
   if (angle < RUDDER_CENTER - LEGAL_RUDDER_RANGE)
     angle = RUDDER_CENTER - LEGAL_RUDDER_RANGE;
   if (angle > RUDDER_CENTER + LEGAL_RUDDER_RANGE)
@@ -42,12 +44,13 @@ void rudder_cb( const std_msgs::Float32& cmd_msg){
 }
 ros::Subscriber<std_msgs::Float32> rudder_sub("/rudder_angle", rudder_cb);
 
-const int PROP_CENTER = 90;
-const float PROP_K = 10.0; // How many "degrees" the prop should respond for 1 newton input command
+const int PROP_CENTER = 91;
+const float PROP_K = 1.0; // How many "degrees" the prop should respond for 1 newton input command
 
 Servo prop;
 void prop_cb( const std_msgs::Float32& cmd_msg){
   int power = (cmd_msg.data * PROP_K) + PROP_CENTER;
+  power = constrain(power, 0, 180);
   prop.write(power); //set servo angle, should be from 0-180
   lastMessageMillis = millis();
 }
