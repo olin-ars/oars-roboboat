@@ -18,13 +18,10 @@ long lastMessageMillis = -1e5;
 
 ros::NodeHandle  nh;
 
-const int PROP_CENTER = 91;
-const float PROP_K = 1.0; // How many "degrees" the prop should respond for 1 newton input command
-
 Servo motor1;
 void motor1_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputerPower, -1, 1);
+  inputPower = constrain( inputPower, -1, 1);
   int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor1.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
@@ -33,7 +30,7 @@ void motor1_cb( const std_msgs::Float32& cmd_msg) {
 Servo motor2;
 void motor2_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputerPower, -1, 1);
+  inputPower = constrain( inputPower, -1, 1);
   int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor2.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
@@ -42,7 +39,7 @@ void motor2_cb( const std_msgs::Float32& cmd_msg) {
 Servo motor3;
 void motor3_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputerPower, -1, 1);
+  inputPower = constrain( inputPower, -1, 1);
   int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor3.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
@@ -51,7 +48,7 @@ void motor3_cb( const std_msgs::Float32& cmd_msg) {
 Servo motor4;
 void motor4_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputerPower, -1, 1);
+  inputPower = constrain( inputPower, -1, 1);
   int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor4.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
@@ -68,14 +65,14 @@ void setup() {
 
   nh.initNode();
   nh.subscribe(prop1_sub);
-  nh.subscribe(prop2_sub)
-  nh.subscribe(prop3_sub)
-  nh.subscribe(prop4_sub)
+  nh.subscribe(prop2_sub);
+  nh.subscribe(prop3_sub);
+  nh.subscribe(prop4_sub);
 
-  prop1.attach(23);
-  prop2.attach(22);
-  prop1.attach(21);
-  prop1.attach(20);
+  motor1.attach(23);
+  motor2.attach(22);
+  motor3.attach(21);
+  motor4.attach(20);
 
 }
 
@@ -91,7 +88,7 @@ void handleFailsafes() {
   bool estop = (t - lastMessageMillis) > 1000;
   do_blink = estop;
   if (estop) {
-    prop.write(PROP_CENTER);
+    // motor1.write(PROP_CENTER);
     // TODO: disconnect from servo instead of
     // just writing a supposedly neutral power
   }
