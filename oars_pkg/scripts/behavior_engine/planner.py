@@ -10,7 +10,7 @@ import time
 
 import rospy
 
-from plans import plans
+from plans import *
 from getch import getch
 
 rospy.init_node('planner')
@@ -29,7 +29,8 @@ def main():
     if configured_plan == '':
         print('Which plan do you want to execute?')
         for i, plan in enumerate(plans):
-            print '\t{}.  {}'.format(i+1, plan.name)
+            print '\t{}.  {}'.format(i+1, plan[0])
+
         curr_plan = int(raw_input())-1
 
         plan = plans[curr_plan]
@@ -37,37 +38,38 @@ def main():
     else:
         plan = None
         for p in plans:
-            if p.name == configured_plan:
+            if p[0] == configured_plan:
                 plan = p
         if not plan:
             print('No plan found with that name!')
             return
 
-    print('Running plan "{}", press the "x" key at any time to abort.'.format(plan.name))
-    plan.execute()
+    print('Running state machine "{}", press the "x" key at any time to abort.'.format(plan[0]))
+    sm = plan[1]
+    outcome = sm.execute()
 
-    def cleanup():
-        getch.cleanup()
-        if plan.active:
-            plan.stop()
-            time.sleep(0.5)
-        exit(0)
+    # def cleanup():
+    #     getch.cleanup()
+    #     if plan.active:
+    #         plan.stop()
+    #         time.sleep(0.5)
+    #     exit(0)
 
-    rospy.on_shutdown(cleanup)
+    # rospy.on_shutdown(cleanup)
 
-    thread.start_new(killonkey, (cleanup,))
+    # thread.start_new(killonkey, (cleanup,))
 
-    r = rospy.Rate(1000)
-    while True:
-        if not plan.active:
-            break
+    # r = rospy.Rate(1000)
+    # while True:
+    #     if not plan.active:
+    #         break
 
-        if rospy.is_shutdown():
-            break
+    #     if rospy.is_shutdown():
+    #         break
 
-        r.sleep()
+    #     r.sleep()
 
-    cleanup()
+    # cleanup()
 
 
 if __name__ == '__main__':
