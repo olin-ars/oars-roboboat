@@ -20,6 +20,9 @@
 * `next_waypoint_rel` Position of the next waypoint relative to the boat, with x being a distance in meters and theta being an angle -180<theta<=180 (Pose2D)
 * `cmd_vel` Commanded velocity of the boat (geometry_msgs/Twist)
 
+#### Sensor values:
+* `imu/data` (type sensor_msgs/Imu) Raw data retrieved from primary IMU sensor
+* `temperature` (type sensor_msgs/Temperature) Temperature in Celsius of IMU in main box
 
 #### Output values:
 * `rudder_angle` Angle of the rudder, measured in degrees, with 0 straight back and positive turning the boat right. (Float32)
