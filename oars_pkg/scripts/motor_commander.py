@@ -13,10 +13,11 @@ and publishes to:
 from std_msgs.msg import Int16, Float32
 from geometry_msgs.msg import Twist
 
+if __name__ == '__main__':
+    rospy.init_node('rudder_publisher')
 
 class autonomousRudderPublisher:#needs a topic to read in waypoint angle from
     def __init__(self):
-        rospy.init_node('rudder_publisher')
 
         # Step 1: Initialize publishers. This will be referred to later whenever data is transmitted.
         self.rudderPub = rospy.Publisher('rudder_angle', Float32, queue_size=10)

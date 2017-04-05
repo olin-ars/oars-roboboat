@@ -19,10 +19,11 @@ where positive power indicates forward thrust
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
 
-rospy.init_node('motor_commander_omni')
+if __name__ == '__main__':
+    rospy.init_node('motor_commander_omni')
 
 
-class autonomousRudderPublisher:  # needs a topic to read in waypoint angle from
+class omniMotorController:  # needs a topic to read in waypoint angle from
     def __init__(self):
 
         self.publishers = [rospy.Publisher('motor{}'.format(i + 1), Float32, queue_size=1) for i in range(4)]
@@ -73,7 +74,7 @@ class autonomousRudderPublisher:  # needs a topic to read in waypoint angle from
 
 if __name__ == '__main__':
     try:
-        handler = autonomousRudderPublisher()
+        handler = omniMotorController()
         handler.run()
     except rospy.ROSInterruptException:
         pass
