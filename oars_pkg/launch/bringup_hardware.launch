@@ -5,6 +5,10 @@
     <!-- Teensy connection code -->
     <node name="rosserial_wrapper" pkg="oars_pkg" type="rosserial_wrapper.py" />
 
-    <!-- TODO: USB sensors -->
+    <!-- USB sensors -->
+    <node name="imu_node" pkg="bosch_bno055_driver" type="bno055_node.py" output="screen" respawn="true" respawn_delay="10" >
+        <param name="serial_port" value="/dev/ttyUSB0" />
+        <param name="calibration_file" value="" />
+    </node>
 
 </launch>
