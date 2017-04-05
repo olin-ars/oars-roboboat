@@ -21,12 +21,12 @@ with firstplan:
 	smach.StateMachine.add('RC', RCTask(),
 							transitions={'done': 'completed'})
 
-# fastplan = smach.StateMachine(outcomes = ['completed'])
+fastplan = smach.StateMachine(outcomes = ['completed'])
 
-# with fastplan:
+with fastplan:
 
-# 	smach.StateMachine.add('DELAY', DelayTask(2),
-# 							transitions={'done': 'completed'})
+	smach.StateMachine.add('DELAY', DelayTask(2),
+							transitions={'done': 'completed'})
 
 plans = [
 	('thefirstplan', firstplan)

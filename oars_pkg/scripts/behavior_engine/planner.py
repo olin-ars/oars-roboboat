@@ -48,28 +48,28 @@ def main():
     sm = plan[1]
     outcome = sm.execute()
 
-    # def cleanup():
-    #     getch.cleanup()
-    #     if plan.active:
-    #         plan.stop()
-    #         time.sleep(0.5)
-    #     exit(0)
+    def cleanup():
+        getch.cleanup()
+        if plan.active:
+            plan.stop()
+            time.sleep(0.5)
+        exit(0)
 
-    # rospy.on_shutdown(cleanup)
+    rospy.on_shutdown(cleanup)
 
-    # thread.start_new(killonkey, (cleanup,))
+    thread.start_new(killonkey, (cleanup,))
 
-    # r = rospy.Rate(1000)
-    # while True:
-    #     if not plan.active:
-    #         break
+    r = rospy.Rate(1000)
+    while True:
+        if not plan.active:
+            break
 
-    #     if rospy.is_shutdown():
-    #         break
+        if rospy.is_shutdown():
+            break
 
-    #     r.sleep()
+        r.sleep()
 
-    # cleanup()
+    cleanup()
 
 
 if __name__ == '__main__':
