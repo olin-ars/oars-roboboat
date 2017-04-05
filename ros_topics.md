@@ -22,11 +22,14 @@
 
 
 #### Output values:
+##### Tugboat:
 * `rudder_angle` Angle of the rudder, measured in degrees, with 0 straight back and positive turning the boat right. (Float32)
 * `propeller_power` Power provided to the propeller, with 0 being no power and 1 being full power. (Float32)
+##### Real boat:
+* `motor1...motor4` (type Float32) Power provided to each thruster, ranging -1...1
+
 
 #### Simulator interface
-* `motor_powers` (type MotorPower) contains four Float32 values in Newtons: frontleft, frontright, backleft, backright
 * `camera/image_raw` (type Image) comes from the front of the boat and has calibration data and stuff
 * `lidar/scan` (type sensor_msgs/LaserScan) comes from 50cm off the water flat to the boat.
 * `proximity/range1...range5` (type sensor_msgs/Range) for front-facing ultrasonics at 20 degree spacing
