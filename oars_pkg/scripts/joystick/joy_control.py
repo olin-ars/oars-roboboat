@@ -7,6 +7,13 @@ from std_msgs.msg import Bool
 from oars_arbiter.voter import Voter_full
 from oars_arbiter import createVote
 
+def bound(n, lower, upper):
+	if n < lower:
+		return lower
+	if n > upper:
+		return upper
+	return n
+
 class JoyController(object):
 	def __init__(self):
 		self.control={'p/s':3 ,'f/a':4, 'spin':0}
@@ -29,7 +36,7 @@ class JoyController(object):
 		stop_cmd=msg.buttons[self.switch['estop']]
 		speed_01, dir_rad = self.cartesian_to_polar(fa_cmd, ps_cmd)
 
-		self.speed = speed_01*100
+		self.speed = bound(speed_01*100, 0, 100)
 		self.direction = round(dir_rad*50/math.pi)
 		self.rotation = round(spin_cmd*25)
 		self.toggle_estop(stop_cmd, start_cmd)
