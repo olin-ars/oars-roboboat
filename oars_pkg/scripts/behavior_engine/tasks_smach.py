@@ -1,83 +1,24 @@
 """
-This file contains the base objects used for in the operation of the Planner,
-including Plan, Task, and TopicTask. This file is not intended to be edited by
-task developers, only extended.
+This file contains the states of the boat, in smach format.
 """
+import threading
+from time import sleep
 
-import rospy
-from std_msgs.msg import Bool
-import smach
-
-
-class Plan(object):
-    """
-    A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
-    """
-    def __init__(self, name, tasklist):
-        """
-        :type tasklist: list of Task
-        """
-        self.name = name
-        self.tasklist = tasklist
-        self.numTasksCompleted = 0
-        self.currenttask = None
-        self.active = False
-
-    def execute(self):
-        if not self.active:
-            self.numTasksCompleted = 0
-            self.active = True
-            self.startnexttask()
-
-    def stop(self):
-        if self.active:
-            self.active = False
-            currenttask = self.tasklist[self.numTasksCompleted]
-
-            currenttask.stop()
-
-    def skipcurrenttask(self):
-        """
-        Aborts the execution of the current task
-        """
-        if self.active:
-            # Note that calling stop() on a task should always trigger the taskcompletioncallback,
-            # which increments the active task before continuing
-            # TODO: Consider creating an additional method to allow cleaning up a task without triggering the callback
-            self.currenttask.stop()
-
-    def startnexttask(self):
-        if self.numTasksCompleted >= len(self.tasklist):
-            self.active = False
-            return
-        self.currenttask = self.tasklist[self.numTasksCompleted]
-        self.currenttask.start(self.taskcompletioncallback)
-
-    def taskcompletioncallback(self):
-        if self.active:
-            self.numTasksCompleted += 1
-            self.startnexttask()
-
+from std_msgs.msg import String
 
 class Task(smach.State):
-    """Task is the base class for anything that can go in a plan"""
+    """The base state from which we can extend other states."""
 
     def __init__(self, name):
-        smach.State.__init__(self, outcomes = ['done'])
+        smach.State.__init__(self, outcomes=['success','failure'])
 
         self.name = name
 
         self.finishCallback = lambda: None
         self.active = False
 
-    def execute(self): 
-    	self.start(None)
-
-    	while self.active:
-    		time.sleep(0.01)
-
-    	return 'done'
-
+    def execute(self, userdata):
+    	return 'success'
 
     def start(self, finishcallback):
         """
@@ -136,3 +77,54 @@ class TopicTask(Task):
         self.activationPub.publish(Bool(False))
 
         super(TopicTask, self).stop()
+
+class SampleTask(TopicTask):
+    """A SampleTask interacts with the sample_task defined in this directory."""
+
+    def __init__(self, name="Sample Task"):
+        super(SampleTask, self).__init__(name, "/test_task_active", "/test_task_done"),
+
+
+class RCTask(TopicTask):
+    """An RC Task triggers the RC code when it starts and never finishes"""
+
+    def __init__(self, name="Obey RC commands"):
+        super(RCTask, self).__init__(name, activationTopic="/RC_active")
+
+
+# YOUR TASKS HERE
+
+class GPSNavigationTask(TopicTask):
+
+    def __init__(self, name="Navigation Task", destination=""):
+        super(GPSNavigationTask, self).__init__(name, activationTopic="/GPS_navigation_active", doneTopic="/GPS_navigation_done")
+        self.destinationPub = rospy.Publisher("/GPS_navigation_destination", String, queue_size=10)
+        self.destination = destination
+        
+        self.activation_delay = 0.1
+    
+    def start(self, finishcallback):
+        self.destinationPub.publish(String(self.destination))
+        sleep(self.activation_delay)
+        super(GPSNavigationTask, self).start(finishcallback)
+
+
+class DelayTask(Task):
+    """A DelayTask simply pauses for the provided number of seconds before finishing"""
+
+    def __init__(self, time):
+        super(DelayTask, self).__init__('Time delay: {}s'.format(time))
+
+        self.delayduration = time
+
+    def start(self, finishcallback):
+        super(DelayTask, self).start(finishcallback)
+
+        self.timer = threading.Timer(self.delayduration, self.stop)
+        self.timer.start()
+
+    def stop(self):
+        self.timer.cancel()
+
+        super(DelayTask, self).stop()
+
