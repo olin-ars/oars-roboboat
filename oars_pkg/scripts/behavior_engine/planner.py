@@ -13,8 +13,11 @@ import rospy
 from plans import *
 from getch import getch
 
+import sys
+import smach_ros
+
 rospy.init_node('planner')
-configured_plan = rospy.get_param('~plan_name', '')
+configured_plan = rospy.get_param('~plan_name', 'firstplan')
 
 
 def killonkey(cleanup):
@@ -24,52 +27,27 @@ def killonkey(cleanup):
         if key == 'x' or key == '\x03':
             cleanup()
 
-
 def main():
-    if configured_plan == '':
-        print('Which plan do you want to execute?')
-        for i, plan in enumerate(plans):
-            print '\t{}.  {}'.format(i+1, plan[0])
+    plansm = plans.get(configured_plan, None)
 
-        curr_plan = int(raw_input())-1
+    if not plansm:
+        print('No plan found with that name!')
+        return
 
-        plan = plans[curr_plan]
+    print('Running state machine "{}", press the "x" key at any time to abort.'.format(configured_plan))
 
-    else:
-        plan = None
-        for p in plans:
-            if p[0] == configured_plan:
-                plan = p
-        if not plan:
-            print('No plan found with that name!')
-            return
+    sis = smach_ros.IntrospectionServer(configured_plan + 'server', plansm, '/SM_ROOT')
+    sis.start()
 
-    print('Running state machine "{}", press the "x" key at any time to abort.'.format(plan[0]))
-    sm = plan[1]
-    outcome = sm.execute()
+    smach_ros.set_preempt_handler(plansm)
 
-    def cleanup():
-        getch.cleanup()
-        if plan.active:
-            plan.stop()
-            time.sleep(0.5)
-        exit(0)
+    plansm.execute()
 
-    rospy.on_shutdown(cleanup)
+    rospy.spin()
 
-    thread.start_new(killonkey, (cleanup,))
+    plansm.request_preempt()
 
-    r = rospy.Rate(1000)
-    while True:
-        if not plan.active:
-            break
-
-        if rospy.is_shutdown():
-            break
-
-        r.sleep()
-
-    cleanup()
+    sis.stop()
 
 
 if __name__ == '__main__':

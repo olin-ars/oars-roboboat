@@ -14,51 +14,12 @@ class Plan(object):
     """
     A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
     """
-    def __init__(self, name, tasklist):
+    def __init__(self, name, sm):
         """
         :type tasklist: list of Task
         """
         self.name = name
-        self.tasklist = tasklist
-        self.numTasksCompleted = 0
-        self.currenttask = None
-        self.active = False
-
-    def execute(self):
-        if not self.active:
-            self.numTasksCompleted = 0
-            self.active = True
-            self.startnexttask()
-
-    def stop(self):
-        if self.active:
-            self.active = False
-            currenttask = self.tasklist[self.numTasksCompleted]
-
-            currenttask.stop()
-
-    def skipcurrenttask(self):
-        """
-        Aborts the execution of the current task
-        """
-        if self.active:
-            # Note that calling stop() on a task should always trigger the taskcompletioncallback,
-            # which increments the active task before continuing
-            # TODO: Consider creating an additional method to allow cleaning up a task without triggering the callback
-            self.currenttask.stop()
-
-    def startnexttask(self):
-        if self.numTasksCompleted >= len(self.tasklist):
-            self.active = False
-            return
-        self.currenttask = self.tasklist[self.numTasksCompleted]
-        self.currenttask.start(self.taskcompletioncallback)
-
-    def taskcompletioncallback(self):
-        if self.active:
-            self.numTasksCompleted += 1
-            self.startnexttask()
-
+        self.sm = sm
 
 class Task(smach.State):
     """Task is the base class for anything that can go in a plan"""
