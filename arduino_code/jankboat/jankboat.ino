@@ -18,11 +18,15 @@ long lastMessageMillis = -1e5;
 
 ros::NodeHandle  nh;
 
+float mapFloat(float val, float inmin, float inmax, float outmin, float outmax){
+  return (val - inmin)/(inmax - inmin)*(outmax-outmin) + outmin;
+}
+
 Servo motor1;
 void motor1_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  int outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor1.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -31,7 +35,7 @@ Servo motor2;
 void motor2_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  int outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor2.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -40,7 +44,7 @@ Servo motor3;
 void motor3_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  int outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor3.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -49,7 +53,7 @@ Servo motor4;
 void motor4_cb( const std_msgs::Float32& cmd_msg) {
   int inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  int outputPower = map(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  int outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
   motor4.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }

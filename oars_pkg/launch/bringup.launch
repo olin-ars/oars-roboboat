@@ -7,7 +7,9 @@
     <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
 
     <!-- Hindbrain stuff -->
-    <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py" />
+    <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py">
+           <param name="boat_type" value="omni"/>
+    </node>
 
     <!-- RC code -->
     <!--node name="joystick_raw" pkg="joy" type="joy_node"/-->
