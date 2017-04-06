@@ -10,7 +10,7 @@
     <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py" />
 
     <!-- RC code -->
-    <node name="joystick_raw" pkg="joy" type="joy_node"/>
+    <!--node name="joystick_raw" pkg="joy" type="joy_node"/-->
     <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py"/>
 
     <!-- TODO: Autonomous behaviors -->
