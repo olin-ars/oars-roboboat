@@ -1,11 +1,10 @@
 /*
-   rosserial Motor writer for jankboat
+   Rosserial motor writer for the boat
 
-   This sketch demonstrates the control of motors of the boat
-   using ROS and the arduiono
+   Gets motor values from ROS and uses PWM to control
+   on board motors through the Arduino
 */
 #include <Arduino.h>
-
 #include <Servo.h>
 #include <ros.h>
 #include <std_msgs/Float32.h>
@@ -18,6 +17,7 @@ long lastMessageMillis = -1e5;
 
 ros::NodeHandle  nh;
 
+//map function modified for float use
 float mapFloat(float val, float inmin, float inmax, float outmin, float outmax){
   return (val - inmin)/(inmax - inmin)*(outmax-outmin) + outmin;
 }
@@ -35,7 +35,7 @@ Servo motor2;
 void motor2_cb( const std_msgs::Float32& cmd_msg) {
   float inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
   motor2.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -44,7 +44,7 @@ Servo motor3;
 void motor3_cb( const std_msgs::Float32& cmd_msg) {
   float inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
   motor3.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -53,7 +53,7 @@ Servo motor4;
 void motor4_cb( const std_msgs::Float32& cmd_msg) {
   float inputPower = cmd_msg.data; // -1 to 1
   inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
   motor4.writeMicroseconds(outputPower);
   lastMessageMillis = millis();
 }
@@ -73,10 +73,10 @@ void setup() {
   nh.subscribe(prop3_sub);
   nh.subscribe(prop4_sub);
 
-  motor1.attach(23);
-  motor2.attach(22);
-  motor3.attach(21);
-  motor4.attach(20);
+  motor1.attach(23); //Front left
+  motor2.attach(22); //Front right
+  motor3.attach(21); //Back left
+  motor4.attach(20); //back right
 
 }
 
@@ -92,9 +92,11 @@ void handleFailsafes() {
   bool estop = (t - lastMessageMillis) > 1000;
   do_blink = estop;
   if (estop) {
-    // motor1.write(PROP_CENTER);
-    // TODO: disconnect from servo instead of
-    // just writing a supposedly neutral power
+    //Stops writing to motors completely, not just setting "netural" position
+    motor1.detach()
+    motor2.detach()
+    motor3.detach()
+    motor4.detach()
   }
 }
 
