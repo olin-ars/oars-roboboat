@@ -3,72 +3,46 @@
 This is the main ROS node for the planner. It is intended to be run
 on the command line or a roslaunch file.
 It takes in one optional ROS parameter, plan_name, which specifies
-the plan to run. If blank, it asks the user for command line input.
+the plan to run. If blank, it defaults to firstplan.
+
+To run:
+start roscore
+$ roscore
+start sample_task
+$ python sample_task.py
+start the plan (plans can be found in plans.py)
+$ python planner.py _plan_name:=your_plan
+
+To add a plan:
+Add to plans.py
+
+To add a task:
+Add to tasks.py
 """
 import thread
 import time
 
 import rospy
 
-from plans import plans
-from getch import getch
+from plans import *
+
+import sys
+import smach_ros
 
 rospy.init_node('planner')
-configured_plan = rospy.get_param('~plan_name', '')
-
-
-def killonkey(cleanup):
-    while True:
-        key = getch()
-
-        if key == 'x' or key == '\x03':
-            cleanup()
+configured_plan = rospy.get_param('~plan_name', 'firstplan')
 
 
 def main():
-    if configured_plan == '':
-        print('Which plan do you want to execute?')
-        for i, plan in enumerate(plans):
-            print '\t{}.  {}'.format(i+1, plan.name)
-        curr_plan = int(raw_input())-1
+    plansm = plans.get(configured_plan, None)
 
-        plan = plans[curr_plan]
+    if not plansm:
+        print('No plan found with that name!')
+        return
 
-    else:
-        plan = None
-        for p in plans:
-            if p.name == configured_plan:
-                plan = p
-        if not plan:
-            print('No plan found with that name!')
-            return
+    print('Running state machine "{}", ctrl c at any time to abort.'.format(configured_plan))
 
-    print('Running plan "{}", press the "x" key at any time to abort.'.format(plan.name))
-    plan.execute()
-
-    def cleanup():
-        getch.cleanup()
-        if plan.active:
-            plan.stop()
-            time.sleep(0.5)
-        exit(0)
-
-    rospy.on_shutdown(cleanup)
-
-    thread.start_new(killonkey, (cleanup,))
-
-    r = rospy.Rate(1000)
-    while True:
-        if not plan.active:
-            break
-
-        if rospy.is_shutdown():
-            break
-
-        r.sleep()
-
-    cleanup()
-
+    plansm.execute();
 
 if __name__ == '__main__':
     main()

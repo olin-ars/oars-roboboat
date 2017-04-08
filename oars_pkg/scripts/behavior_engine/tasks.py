@@ -23,7 +23,6 @@ class RCTask(TopicTask):
     def __init__(self, name="Obey RC commands"):
         super(RCTask, self).__init__(name, activationTopic="/RC_active")
 
-
 # YOUR TASKS HERE
 
 class GPSNavigationTask(TopicTask):
@@ -45,7 +44,9 @@ class DelayTask(Task):
     """A DelayTask simply pauses for the provided number of seconds before finishing"""
 
     def __init__(self, time):
-        super(DelayTask, self).__init__('Time delay: {}s'.format(time))
+    	task_name = 'Time delay: {}s'.format(time)
+    	print task_name
+        super(DelayTask, self).__init__(task_name)
 
         self.delayduration = time
 
