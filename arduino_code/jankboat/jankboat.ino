@@ -92,7 +92,7 @@ void handleFailsafes() {
   bool estop = (t - lastMessageMillis) > 1000;
   do_blink = estop;
   if (estop) {
-    //Stops writing to motors completely, not just settin "netural" position
+    //Stops writing to motors completely, not just setting "netural" position
     motor1.detach()
     motor2.detach()
     motor3.detach()
