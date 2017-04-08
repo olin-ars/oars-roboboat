@@ -36,19 +36,7 @@ def main():
 
     print('Running state machine "{}", press the "x" key at any time to abort.'.format(configured_plan))
 
-    sis = smach_ros.IntrospectionServer(configured_plan + 'server', plansm, '/SM_ROOT')
-    sis.start()
-
-    smach_ros.set_preempt_handler(plansm)
-
-    plansm.execute()
-
-    rospy.spin()
-
-    plansm.request_preempt()
-
-    sis.stop()
-
+    plansm.execute();
 
 if __name__ == '__main__':
     main()

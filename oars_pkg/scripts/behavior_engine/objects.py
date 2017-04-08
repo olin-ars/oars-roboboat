@@ -35,7 +35,7 @@ class Task(smach.State):
     def execute(self, userdata): 
     	self.start(None)
 
-    	while self.active:
+    	while self.active and not rospy.is_shutdown():
     		time.sleep(0.01)
 
     	return 'done'
