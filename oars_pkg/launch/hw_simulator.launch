@@ -1,0 +1,11 @@
+<launch>
+
+    <!-- Simulator and GUI tools -->
+    <node name="simulator" pkg="oars_pkg" type="simulator_roslink.py" />
+    <node name="websockets" pkg="rosbridge_server" type="rosbridge_websocket.py" />
+
+    <node name="motor_commander" pkg="oars_pkg" type="motor_commander.py">
+        <param name="boat_type" value="sim"/>
+    </node>
+
+</node>
