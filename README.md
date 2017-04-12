@@ -1,3 +1,9 @@
+# Olin Aquatic Robotic Systems
+
+Git repository for the Olin Aquatic Robotic Systems team. Learn how to do things in our [wiki](https://github.com/olin-robotic-sailing/oars-roboboat/wiki).
+
+For information about our team, blog updates and more, visit our website at [olinaquabots.com](olinaquabots.com).
+
 # Setting up your computer
 
 In order to run OARS code, you need the following things setup on your computer:
