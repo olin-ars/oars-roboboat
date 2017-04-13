@@ -2,7 +2,7 @@
 
 Git repository for the Olin Aquatic Robotic Systems team. Learn how to do things in our [wiki](https://github.com/olin-robotic-sailing/oars-roboboat/wiki).
 
-For information about our team, blog updates and more, visit our website at [olinaquabots.com](olinaquabots.com).
+For information about our team, blog updates and more, visit our website at [olinaquabots.com](https://www.olinaquabots.com/).
 
 # Setting up your computer
 
