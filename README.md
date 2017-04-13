@@ -26,13 +26,13 @@ The result should include */home/yourname/catkin_ws/src*
 * test by running 
 ```
 rosdep update
-rosdep check oars_pkg pool_server oars_arbiter
+rosdep --ignore-src check --from-paths $(rospack find oars_pkg)/..
 ```
 
 * fix by running 
 ```
 sudo apt-get update
-rosdep install oars_pkg pool_server oars_arbiter
+rosdep --ignore-src install --from-paths $(rospack find oars_pkg)/..
 ```
 
 # Running the Code
