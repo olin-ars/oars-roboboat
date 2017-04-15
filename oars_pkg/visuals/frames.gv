@@ -1,0 +1,21 @@
+digraph G {
+"odom" -> "base_link"[label=" Broadcaster: /odom_base\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "laser"[label=" Broadcaster: /base_laser\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"stable/base_link" -> "stable/...etc"[label=" Broadcaster: /base_stable_misc\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course/docking" -> "course/docking/bay1"[label=" Broadcaster: /docking_bay1\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"stable/base_link" -> "stable/laser"[label=" Broadcaster: /base_stable_laser\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course" -> "course/docking"[label=" Broadcaster: /course_docking\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course/docking" -> "course/docking/display"[label=" Broadcaster: /docking_display\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"map" -> "course"[label=" Broadcaster: /course\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "...etc"[label=" Broadcaster: /base_misc\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"map" -> "odom"[label=" Broadcaster: /map_odom\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"odom" -> "stable/base_link"[label=" Broadcaster: /odom_stable_base\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course" -> "course/navigation_entrance"[label=" Broadcaster: /course_nav_1\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course/navigation_exit" -> "course/navigation_exit/green_buoy"[label=" Broadcaster: /nav_exit_2\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course/navigation_exit" -> "course/navigation_exit/red_buoy"[label=" Broadcaster: /nav_exit_1\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"course" -> "course/navigation_exit"[label=" Broadcaster: /course_nav_2\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1492278604.54"[ shape=plaintext ] ;
+}->"map";
+}

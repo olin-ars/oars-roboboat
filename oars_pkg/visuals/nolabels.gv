@@ -1,0 +1,18 @@
+digraph G {
+"odom" -> "base_link";
+"base_link" -> "laser";
+"stable/base_link" -> "stable/...etc";
+"course/docking" -> "course/docking/bay1";
+"stable/base_link" -> "stable/laser";
+"course" -> "course/docking";
+"course/docking" -> "course/docking/display";
+"map" -> "course";
+"base_link" -> "...etc";
+"map" -> "odom";
+"odom" -> "stable/base_link";
+"course" -> "course/navigation_entrance";
+"course/navigation_exit" -> "course/navigation_exit/green_buoy";
+"course/navigation_exit" -> "course/navigation_exit/red_buoy";
+"course" -> "course/navigation_exit";
+
+}

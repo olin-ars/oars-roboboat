@@ -1,0 +1,55 @@
+<launch> 
+
+	<!-- Standard ROS stuff -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="map_odom" 
+		args="0 0 0 0 1.57 0 /map /odom"/>
+
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="odom_base" 
+		args="0 0 0 0 1.57 0 /odom /base_link"/>
+
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_laser" 
+		args="0 0 0 0 1.57 0 /base_link /laser"/>
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_misc" 
+		args="0 0 0 0 1.57 0 /base_link /...etc"/>
+
+	<!-- Stable version of boat stuff -->
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="odom_stable_base" 
+		args="0 0 0 0 1.57 0 /odom /stable/base_link"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_stable_laser"
+		args="0 0 0 0 1.57 0 /stable/base_link /stable/laser"/>
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_stable_misc"
+		args="0 0 0 0 1.57 0 /stable/base_link /stable/...etc"/>
+
+	<!-- Course things -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="course" 
+		args="0 0 0 0 1.57 0 /map /course"/>
+
+	<!-- Docking -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="course_docking" 
+		args="0 0 0 0 1.57 0 /course /course/docking"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="docking_bay1" 
+		args="0 0 0 0 1.57 0 /course/docking /course/docking/bay1"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="docking_display" 
+		args="0 0 0 0 1.57 0 /course/docking /course/docking/display"/>
+
+
+	<!-- Navigation -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="course_nav_1" 
+		args="0 0 0 0 1.57 0 /course /course/navigation_entrance"/>
+	<node pkg="tf2_ros" type="static_transform_publisher" name="course_nav_2" 
+		args="0 0 0 0 1.57 0 /course /course/navigation_exit"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="nav_exit_1" 
+		args="0 0 0 0 1.57 0 /course/navigation_exit /course/navigation_exit/red_buoy"/>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="nav_exit_2" 
+		args="0 0 0 0 1.57 0 /course/navigation_exit /course/navigation_exit/green_buoy"/>
+
+
+</launch>
