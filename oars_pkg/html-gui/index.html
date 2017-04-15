@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<!--- This file came from http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality -->
+
+<script type="text/javascript" src="eventemitter2.min.js"></script>
+<script type="text/javascript" src="roslib.min.js"></script>
+<script type="text/javascript" src="jquery-2.2.2.js"></script>
+
+<link rel="stylesheet" href="stylesheet.css" type="text/css">
+
+<script type="text/javascript" src="scripts.js"></script>
+</head>
+
+<body>
+  <h1>ORS Mission Control</h1>
+  <hr>
+  <h2>Internal state visualizations</h2>
+  <div>Local position: <span class="numdisplay" id="local_pos">[data missing]</span></div>
+  <div>Sail position: <span class="numdisplay" id="sail_angle">[data missing]</span></div>
+  <div>Rudder position: <span class="numdisplay" id="rudder_angle">[data missing]</span></div>
+  <div>True Wind: <span class="numdisplay" id="true_wind">[data missing]</span></div>
+  <div>Global Wind: <span class="numdisplay" id="global_wind">[data missing]</span></div>
+  <!-- TODO: this should be loaded dynamically from an Inkscape/Illustrator file -->
+
+
+  <hr>
+  <h2>Autonomy Internals</h2>
+
+  <div>Boat is tacking: <span class="numdisplay" id="is_tacking">[data missing]</span></div>
+  <div>Target is upwind: <span class="numdisplay" id="is_upwind">[data missing]</span></div>
+  <div>Heading error: <span class="numdisplay" id="heading_err">[data missing]</span></div>
+  
+
+  <hr>
+  <h2>Status</h2>
+
+<div class="statusRow">   
+<br>Sail Teensy: 
+<div style="background-position: -32px 0px;" id="sailstatus" class="statuslight"></div>
+<script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#sailstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Rudder Teensy: 
+<div style="background-position: -32px 0px;" id="rudderstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rudder/pos', 'std_msgs/Int16', $('#rudderstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>RC Teensy: 
+<div style="background-position: -32px 0px;" id="RCstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rc/debug_dial_in', 'std_msgs/Float32', $('#RCstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Hemisphere (+parsing): 
+<div style="background-position: -32px 0px;" id="hemispherestatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/hemisphere/fullmsg', 'std_msgs/String', $('#hemispherestatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Airmar (+parsing): 
+<div style="background-position: -32px 0px;" id="airmarstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/airmar/fullmsg', 'std_msgs/String', $('#airmarstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>RC code:  
+<div style="background-position: -32px 0px;" id="rc_modestatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rc_mode/rudder/set_point', 'std_msgs/Int16', $('#rc_modestatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Arbiter:  
+<div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/rudder/set_point', 'std_msgs/Int16', $('#arbiterstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Sensor preprocessor:  
+<div style="background-position: -32px 0px;" id="sensorsstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/location', 'geometry_msgs/Pose2D', $('#sensorsstatus'))</script>
+</div>
+
+<div class="statusRow">   
+<br>Rudder_thinking:  
+<div style="background-position: -32px 0px;" id="rudderthinkingstatus" class="statuslight"></div>
+<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
+<script>setup_watchdog('/heading_err', 'std_msgs/Int16', $('#rudderthinkingstatus'))</script>
+</div>
+
+</body>
+</html>
