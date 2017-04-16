@@ -6,9 +6,9 @@ publish_tf: true
 publish_acceleration: true
 
 map_frame: map
-odom_frame: world
+odom_frame: pool
 base_link_frame: boat_link
-world_frame: world
+world_frame: pool
 
 odom0: ar_odometry
 odom0_config:  [true, true, true,

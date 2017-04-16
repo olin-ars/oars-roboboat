@@ -17,7 +17,7 @@ MARKER_ID = 0
 LINEAR_COVARIANCE = 0.03
 ANGULAR_COVARIANCE = 0.3
 CHILD_FRAME = 'ar_tag'  # The frame associated with the physical tag on the robot
-WORLD_FRAME = 'world'  # The frame associated with the world
+WORLD_FRAME = 'pool'  # The frame associated with the world
 
 
 class ARrepublisher:  # needs a topic to read in waypoint angle from
