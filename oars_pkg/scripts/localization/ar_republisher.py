@@ -5,16 +5,19 @@ as an Odometry message, including generation of covariance data
 """
 
 import rospy
-from ar_track_alvar_msgs.msg import AlvarMarkers
-from geometry_msgs.msg import PoseWithCovariance, TwistWithCovariance, Pose
-from nav_msgs.msg import Odometry
+import tf2_geometry_msgs
 import tf2_ros
+from ar_track_alvar_msgs.msg import AlvarMarkers, AlvarMarker
+from geometry_msgs.msg import PoseWithCovariance, TwistWithCovariance, Pose, PoseStamped
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import Imu
+from std_msgs.msg import Header
 
 MARKER_ID = 0
 LINEAR_COVARIANCE = 0.03
 ANGULAR_COVARIANCE = 0.3
-CHILD_FRAME = 'ar_tag'
-BASE_LINK = 'boat_link'
+CHILD_FRAME = 'ar_tag'  # The frame associated with the physical tag on the robot
+WORLD_FRAME = 'world'  # The frame associated with the world
 
 
 class ARrepublisher:  # needs a topic to read in waypoint angle from
@@ -25,17 +28,23 @@ class ARrepublisher:  # needs a topic to read in waypoint angle from
         tf2_ros.TransformListener(self.tfBuffer)
 
         # Step 1: Initialize publishers. This will be referred to later whenever data is transmitted.
-        self.pub = rospy.Publisher('ar_odometry', Odometry, queue_size=1)
+        self.imu_pub = rospy.Publisher('ar_imu', Imu, queue_size=0)
+        self.odom_pub = rospy.Publisher('ar_odometry', Odometry, queue_size=0)
 
         # Step 2: Initialize subscribers. Each subscriber (incomming information) gets a "self.*" variable,
         # a callback, and a subscriber
         self.sub = rospy.Subscriber('ar_pose_marker', AlvarMarkers, self.onMarker)
 
-        self.covariance = [0] * 36
-        self.covariance[0] = self.covariance[7] = self.covariance[14] = LINEAR_COVARIANCE
-        self.covariance[21] = self.covariance[28] = self.covariance[35] = ANGULAR_COVARIANCE
+        self.pose_covariance = [0] * 36
+        self.pose_covariance[0] = self.pose_covariance[7] = self.pose_covariance[14] = LINEAR_COVARIANCE
+        self.pose_covariance[21] = self.pose_covariance[28] = self.pose_covariance[35] = 1e6
 
-        self.twist = TwistWithCovariance(covariance=[99999] * 36)
+        self.orientation_covariance = [0] * 9
+        self.orientation_covariance[0] = \
+            self.orientation_covariance[4] = \
+            self.orientation_covariance[8] = ANGULAR_COVARIANCE
+
+        self.fake_twist = TwistWithCovariance(covariance=[99999] * 36)
 
     def onMarker(self, msg):
         """
@@ -43,34 +52,38 @@ class ARrepublisher:  # needs a topic to read in waypoint angle from
         """
         for marker in msg.markers:
             if marker.id == MARKER_ID:
-                self.publish_odom(marker)
+                self.publish_messages(marker)
 
-    def fix_pose_to_base_link(self, pose):
+    def fix_pose_to_base_link(self, pose, header):
         """
 
         :type pose: Pose
         """
-        transform = self.tfBuffer.lookup_transform(CHILD_FRAME, BASE_LINK, rospy.Time(0)).transform
+        transform = self.tfBuffer.lookup_transform(
+            WORLD_FRAME, header.frame_id, header.stamp, rospy.Duration(1))
 
-        pose.position.x += transform.translation.x
-        pose.position.y += transform.translation.y
-        pose.position.z += transform.translation.z
-
-        posequat = pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w
-        adjquat = transform.rotation.x, transform.rotation.y, transform.rotation.z, \
-                      transform.rotation.w
-
-        newquat = q_mult(adjquat, posequat)
-        pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w = newquat
-
+        pose = tf2_geometry_msgs.do_transform_pose(PoseStamped(header=header, pose=pose), transform).pose
         return pose
 
-    def publish_odom(self, marker):
+    def publish_messages(self, marker):
+        """
+        :type marker: AlvarMarker
+        """
         pose = marker.pose.pose
-        pose = self.fix_pose_to_base_link(pose)
-        pose_covariance = PoseWithCovariance(pose=pose, covariance=self.covariance)
-        odometry = Odometry(header=marker.header, child_frame_id=CHILD_FRAME, pose=pose_covariance, twist=self.twist)
-        self.pub.publish(odometry)
+        pose = self.fix_pose_to_base_link(pose, marker.header)
+
+        # Build and publish the odom message with only position information
+        pose_covariance = PoseWithCovariance(pose=pose, covariance=self.pose_covariance)
+        odometry = Odometry(header=Header(frame_id=WORLD_FRAME, stamp=marker.header.stamp),
+                            child_frame_id=CHILD_FRAME, pose=pose_covariance, twist=self.fake_twist)
+        self.odom_pub.publish(odometry)
+
+        # Publish the IMU message with only orientation information
+        imu = Imu(header=Header(frame_id=CHILD_FRAME, stamp=marker.header.stamp),
+                  orientation=pose.orientation, orientation_covariance=self.orientation_covariance,
+                  angular_velocity_covariance=[1e5] * 9,
+                  linear_acceleration_covariance=[1e5] * 9)
+        self.imu_pub.publish(imu)
 
     def run(self):
         rospy.spin()
