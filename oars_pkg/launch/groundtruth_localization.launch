@@ -1,4 +1,5 @@
 <launch>
+	<include file="$(find oars_pkg)/launch/tugboat_tf.launch"/>
     <!-- Transformers for data types -->
     <node name="ar_tag_transformer" pkg="oars_pkg" type="groundtruth_ar_republisher.py"/>
 
