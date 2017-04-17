@@ -1,9 +1,0 @@
-<launch>
-    <!-- Transformers for data types -->
-    <node name="ar_tag_transformer" pkg="oars_pkg" type="ar_republisher.py"/>
-
-    <!-- Local localization -->
-    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_continuous" output="screen">
-    	<rosparam command="load" file="$(find oars_pkg)/config/localization_smooth.yaml" />
-    </node>
-</launch>
