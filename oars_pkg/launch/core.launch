@@ -2,7 +2,6 @@
 
     <!-- Launch Arbiter and Behavior Engine -->
     <node name="arbiter" pkg="oars_arbiter" type="arbiter.py" />
-    <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
 
     <!-- Behavior Engine -->
     <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
