@@ -5,6 +5,9 @@
         <param name="boat_type" value="tugboat"/>
     </node>
 
+    <!-- Teensy connection code -->
+    <node name="rosserial_wrapper" pkg="oars_pkg" type="rosserial_wrapper.py" />
+
     <!-- USB sensors -->
     <node name="imu_node" pkg="bosch_bno055_driver" type="bno055_node.py" output="screen" respawn="true" respawn_delay="10" >
         <param name="serial_port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" />
