@@ -6,10 +6,4 @@
     <!-- Behavior Engine -->
     <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
 
-    <!-- GPS Autonomy code -->
-    <node name="waypoint_manager" pkg="oars_pkg" type="waypoint_manager.py" />
-    <node name="waypoint_checker" pkg="oars_pkg" type="waypoint_checker.py" />
-    <node name="relative_waypoint_calculator" pkg="oars_pkg" type="relative_waypoint_calculator.py" />
-    <node name="motion_commander" pkg="oars_pkg" type="motion_commander.py" />
-
 </launch>
