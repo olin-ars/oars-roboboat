@@ -80,7 +80,7 @@
   <div class="statusRow">   
   <br>Motor Controller:  
   <div style="background-position: -32px 0px;" id="motorcontrollerstatus" class="statuslight"></div>
-  <script>setup_watchdog('/motor1', 'std_msgs/String', $('#motorcontrollerstatus'))</script>
+  <script>setup_watchdog('/motor1', 'std_msgs/Float32', $('#motorcontrollerstatus'))</script>
   </div>
   </th>
 </tr>
@@ -100,7 +100,7 @@
   <div class="statusRow">   
   <br>State Machine Active:  
   <div style="background-position: -32px 0px;" id="smachstatus" class="statuslight"></div>
-  <script>setup_watchdog('/smach', 'std_msgs/Float32', $('#smachstatus'))</script>
+  <script>setup_watchdog('/smach', 'std_msgs/String', $('#smachstatus'))</script>
   </div>
   </th>
   </tr>
