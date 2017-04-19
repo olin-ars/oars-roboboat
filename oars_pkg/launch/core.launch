@@ -6,4 +6,7 @@
     <!-- Behavior Engine -->
     <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
 
+    <!-- Joystick Handler -->
+    <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py"/>
+
 </launch>
