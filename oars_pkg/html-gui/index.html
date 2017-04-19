@@ -37,67 +37,110 @@
   <hr>
   <h2>Status</h2>
 
-<div class="statusRow">   
-<br>Sail Teensy: 
-<div style="background-position: -32px 0px;" id="sailstatus" class="statuslight"></div>
-<script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#sailstatus'))</script>
-</div>
+<table style="width:100%">
 
-<div class="statusRow">   
-<br>Rudder Teensy: 
-<div style="background-position: -32px 0px;" id="rudderstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rudder/pos', 'std_msgs/Int16', $('#rudderstatus'))</script>
-</div>
+<tr>
+<th>Sensors</th>
+<th>Software</th>
+</tr>
 
-<div class="statusRow">   
-<br>RC Teensy: 
-<div style="background-position: -32px 0px;" id="RCstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rc/debug_dial_in', 'std_msgs/Float32', $('#RCstatus'))</script>
-</div>
+<tr>
+  <!-- Teensy -->
+  <th>
+  <div class="statusRow">   
+  <br>Teensy: 
+  <div style="background-position: -32px 0px;" id="teensystatus" class="statuslight"></div>
+  <script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#teensystatus'))</script>
+  </div>
+  </th>
 
-<div class="statusRow">   
-<br>Hemisphere (+parsing): 
-<div style="background-position: -32px 0px;" id="hemispherestatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/hemisphere/fullmsg', 'std_msgs/String', $('#hemispherestatus'))</script>
-</div>
+  <th>
+  <!-- Arbiter -->
+  <div class="statusRow">   
+  <br>Arbiter:  
+  <div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
+  <script>setup_watchdog('/cmd_vel', 'geometry_msgs/Twist', $('#arbiterstatus'))</script>
+  </div>
+  </th>
+</tr>
 
-<div class="statusRow">   
-<br>Airmar (+parsing): 
-<div style="background-position: -32px 0px;" id="airmarstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/airmar/fullmsg', 'std_msgs/String', $('#airmarstatus'))</script>
-</div>
 
-<div class="statusRow">   
-<br>RC code:  
-<div style="background-position: -32px 0px;" id="rc_modestatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rc_mode/rudder/set_point', 'std_msgs/Int16', $('#rc_modestatus'))</script>
-</div>
+<tr>
+  <th>
+  <!-- IMU -->
+  <div class="statusRow">   
+  <br>IMU: 
+  <div style="background-position: -32px 0px;" id="imustatus" class="statuslight"></div>
+  <script>setup_watchdog('/imu/data', 'sensor_msgs/Imu', $('#imustatus'))</script>
+  </div>
+  </th>
 
-<div class="statusRow">   
-<br>Arbiter:  
-<div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/rudder/set_point', 'std_msgs/Int16', $('#arbiterstatus'))</script>
-</div>
+  <th>
+  <!-- Motor Controller -->
+  <div class="statusRow">   
+  <br>Motor Controller:  
+  <div style="background-position: -32px 0px;" id="motorcontrollerstatus" class="statuslight"></div>
+  <script>setup_watchdog('/motor1', 'std_msgs/String', $('#motorcontrollerstatus'))</script>
+  </div>
+  </th>
+</tr>
 
-<div class="statusRow">   
-<br>Sensor preprocessor:  
-<div style="background-position: -32px 0px;" id="sensorsstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/location', 'geometry_msgs/Pose2D', $('#sensorsstatus'))</script>
-</div>
+<tr>
+  <th>
+  <!-- Fix/ GPS -->
+  <div class="statusRow">   
+  <br>GPS: 
+  <div style="background-position: -32px 0px;" id="fixstatus" class="statuslight"></div>
+  <script>setup_watchdog('/fix', 'sensor_msgs/NavSatFix', $('#fixstatus'))</script>
+  </div>
+  </th>
 
-<div class="statusRow">   
-<br>Rudder_thinking:  
-<div style="background-position: -32px 0px;" id="rudderthinkingstatus" class="statuslight"></div>
-<!-- I'd really like these to live in the onload event of their respective elements, but it wasn't working. -->
-<script>setup_watchdog('/heading_err', 'std_msgs/Int16', $('#rudderthinkingstatus'))</script>
-</div>
+  <th>
+  <!-- Behavior Engine -->
+  <div class="statusRow">   
+  <br>State Machine Active:  
+  <div style="background-position: -32px 0px;" id="smachstatus" class="statuslight"></div>
+  <script>setup_watchdog('/smach', 'std_msgs/Float32', $('#smachstatus'))</script>
+  </div>
+  </th>
+  </tr>
+
+<tr>
+  <th>
+  <!-- Lidar -->
+  <div class="statusRow">   
+  <br>Lidar:  
+  <div style="background-position: -32px 0px;" id="lidarstatus" class="statuslight"></div>
+  <script>setup_watchdog('/scan', 'sensor_msgs/LaserScan', $('#lidarstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+<tr>
+  <th>
+  <!-- Camera -->
+  <div class="statusRow">   
+  <br>Camera:  
+  <div style="background-position: -32px 0px;" id="camerastatus" class="statuslight"></div>
+  <script>setup_watchdog('/camera/camera_info', 'sensor_msgs/CameraInfo', $('#camerastatus'))</script>
+  </div>
+  </th>
+</tr>
+
+<tr>
+  <th>
+  <!-- Joystick -->
+  <div class="statusRow">   
+  <br>Joystick:  
+  <div style="background-position: -32px 0px;" id="joystickstatus" class="statuslight"></div>
+  <script>setup_watchdog('/joy', 'sensor_msgs/Joy', $('#joystickstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+</table>
+
+
 
 </body>
 </html>

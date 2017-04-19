@@ -5,7 +5,7 @@ task developers, only extended.
 """
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 import smach
 import time
 
@@ -31,12 +31,14 @@ class Task(smach.State):
 
         self.finishCallback = lambda: None
         self.active = False
+        self.statusPub = rospy.Publisher('/smach', String, queue_size=10)
 
     def execute(self, userdata): 
     	self.start(None)
 
     	while self.active and not rospy.is_shutdown():
     		time.sleep(0.01)
+            self.statusPub.publish(self.name)
 
     	return 'done'
 
