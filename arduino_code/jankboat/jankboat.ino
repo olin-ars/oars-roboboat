@@ -92,6 +92,7 @@ void loop() {
   if(millis() - last_is_rover_pub > 1000/IS_ROVER_RATE){
     is_rover.data = on_ground();
     is_rover_pub.publish(&is_rover);
+    last_is_rover_pub = millis()
   }
   delay(1);
 }
