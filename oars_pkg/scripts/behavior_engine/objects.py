@@ -31,7 +31,7 @@ class Task(smach.State):
 
         self.finishCallback = lambda: None
         self.active = False
-        self.statusPub = rospy.Publisher('/smach', String, queue_size=10)
+        self.statusPub = rospy.Publisher('smach', String, queue_size=10)
 
     def execute(self, userdata): 
     	self.start(None)
