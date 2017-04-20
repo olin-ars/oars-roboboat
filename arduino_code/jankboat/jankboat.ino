@@ -8,105 +8,159 @@
 #include <Servo.h>
 #include <ros.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Bool.h>
+#include "jankboat.h"
 
-void handleFailsafes();
-void handleStatusLED();
+#define MOTOR_NUM 4
+#define LED_PIN 13
+#define IS_ROVER_PIN 19
+#define TIMEOUT 1000
+#define IS_ROVER_RATE 5
+#define PWM_HIGH 2000
+#define PWM_LOW 1000
 
+Servo motors[MOTOR_NUM];
 bool do_blink = true;
-long lastMessageMillis = -1e5;
+long last_message_millis = -1e5;
+long last_is_rover_pub = 0;
+bool estopped = false;
 
 ros::NodeHandle  nh;
-
-//map function modified for float use
-float mapFloat(float val, float inmin, float inmax, float outmin, float outmax){
-  return (val - inmin)/(inmax - inmin)*(outmax-outmin) + outmin;
-}
-
-Servo motor1;
-void motor1_cb( const std_msgs::Float32& cmd_msg) {
-  float inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000); // Convert to usuable microseconds
-  motor1.writeMicroseconds(outputPower);
-  lastMessageMillis = millis();
-}
-
-Servo motor2;
-void motor2_cb( const std_msgs::Float32& cmd_msg) {
-  float inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
-  motor2.writeMicroseconds(outputPower);
-  lastMessageMillis = millis();
-}
-
-Servo motor3;
-void motor3_cb( const std_msgs::Float32& cmd_msg) {
-  float inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
-  motor3.writeMicroseconds(outputPower);
-  lastMessageMillis = millis();
-}
-
-Servo motor4;
-void motor4_cb( const std_msgs::Float32& cmd_msg) {
-  float inputPower = cmd_msg.data; // -1 to 1
-  inputPower = constrain( inputPower, -1, 1);
-  float outputPower = mapFloat(inputPower, -1, 1, 1000, 2000);
-  motor4.writeMicroseconds(outputPower);
-  lastMessageMillis = millis();
-}
-
 ros::Subscriber<std_msgs::Float32> prop1_sub("/motor1", motor1_cb);
 ros::Subscriber<std_msgs::Float32> prop2_sub("/motor2", motor2_cb);
 ros::Subscriber<std_msgs::Float32> prop3_sub("/motor3", motor3_cb);
 ros::Subscriber<std_msgs::Float32> prop4_sub("/motor4", motor4_cb);
+ros::Subscriber<std_msgs::Bool> estop_sub("/estop", estop_cb);
+
+std_msgs::Bool is_rover;
+ros::Publisher is_rover_pub("/is_rover", &is_rover);
+
+//map function modified for float use
+float map_float(float val, float inmin, float inmax, float outmin, float outmax){
+  return (val - inmin)/(inmax - inmin)*(outmax-outmin) + outmin;
+}
+
+void motor1_cb( const std_msgs::Float32& cmd_msg) {
+  set_motor_power(0,cmd_msg.data); // -1 to 1
+  last_message_millis = millis();
+}
+
+void motor2_cb( const std_msgs::Float32& cmd_msg) {
+  set_motor_power(1,cmd_msg.data); // -1 to 1
+  last_message_millis = millis();
+}
+
+void motor3_cb( const std_msgs::Float32& cmd_msg) {
+  set_motor_power(2,cmd_msg.data); // -1 to 1
+  last_message_millis = millis();
+}
+
+void motor4_cb( const std_msgs::Float32& cmd_msg) {
+  set_motor_power(3,cmd_msg.data); // -1 to 1
+  last_message_millis = millis();
+}
+
+void estop_cb( const std_msgs::Bool& cmd_msg){
+  if(cmd_msg.data != estopped){
+    estopped = cmd_msg.data;
+    if(estopped){
+      detach_motors();
+    }else{
+      attach_motors();
+    }
+  }
+  last_message_millis = millis();
+}
 
 void setup() {
   // Enable the LED pin
-  pinMode(13, OUTPUT);
-
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(IS_ROVER_PIN, INPUT_PULLUP);
   nh.initNode();
   nh.subscribe(prop1_sub);
   nh.subscribe(prop2_sub);
   nh.subscribe(prop3_sub);
   nh.subscribe(prop4_sub);
+  nh.subscribe(estop_sub);
 
-  motor1.attach(23); //Front left
-  motor2.attach(22); //Front right
-  motor3.attach(21); //Back left
-  motor4.attach(20); //back right
+  nh.advertise(is_rover_pub);
+  attach_motors();
 
 }
 
 void loop() {
   nh.spinOnce();
-  handleFailsafes();
-  handleStatusLED();
+  handle_failsafes();
+  handle_status_LED();
+  if(millis() - last_is_rover_pub > 1000/IS_ROVER_RATE){
+    is_rover.data = on_ground();
+    is_rover_pub.publish(&is_rover);
+    last_is_rover_pub = millis()
+  }
   delay(1);
 }
 
-void handleFailsafes() {
-  long t = millis();
-  bool estop = (t - lastMessageMillis) > 1000;
-  do_blink = estop;
-  if (estop) {
-    //Stops writing to motors completely, not just setting "netural" position
-    motor1.detach()
-    motor2.detach()
-    motor3.detach()
-    motor4.detach()
+void set_motor_power(int motor_num, float input_power){
+  input_power = constrain( input_power, -1, 1);
+  float output_power = map_float(input_power, -1, 1, PWM_LOW, PWM_HIGH); // Convert to usuable microseconds
+  motors[motor_num].writeMicroseconds(output_power);
+}
+
+bool motors_attached(){
+  for(int i = 0; i < MOTOR_NUM; i++){
+    if(!motors[i].attached()){
+      return false;
+    }
+  }
+  return true;
+}
+
+void attach_motors(){
+  for(int i = 0; i < MOTOR_NUM; i++){
+    motors[i].writeMicroseconds((PWM_HIGH+PWM_LOW)/2);
+  }
+  motors[0].attach(23); //Front left
+  motors[1].attach(22); //Front right
+  motors[2].attach(21); //Back left
+  motors[3].attach(20); //back right
+}
+
+//Stops writing to motors completely, not just setting "netural" position
+void detach_motors(){
+  for(int i = 0; i < MOTOR_NUM; i++){
+    motors[i].detach();
   }
 }
 
-void handleStatusLED() {
+//reads pin 19 to report whether vehicle is a ground vehicle
+bool on_ground(){
+  if(digitalRead(19) == HIGH){
+    return false;
+  }else{
+    return true;
+  }
+}
+
+void handle_failsafes() {
   long t = millis();
-  const byte LED_PIN = 13;
+  bool timedout = (t - last_message_millis) > TIMEOUT;
+  do_blink = !timedout;
+  if (timedout) {
+    if(motors_attached()){
+      detach_motors();
+    }
+  }else if(!estopped){
+    if(!motors_attached()){
+      attach_motors();
+    }
+  }
+}
+
+void handle_status_LED() {
+  long t = millis();
   if (do_blink) {
     digitalWrite(LED_PIN, (t % 400) < 200);
   } else {
     digitalWrite(LED_PIN, HIGH);
   }
-
 }
