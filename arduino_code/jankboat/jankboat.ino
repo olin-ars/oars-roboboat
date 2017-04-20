@@ -13,8 +13,11 @@
 
 #define MOTOR_NUM 4
 #define LED_PIN 13
+#define IS_ROVER_PIN 19
 #define TIMEOUT 1000
 #define IS_ROVER_RATE 5
+#define PWM_HIGH 2000
+#define PWM_LOW 1000
 
 Servo motors[MOTOR_NUM];
 bool do_blink = true;
@@ -72,7 +75,7 @@ void estop_cb( const std_msgs::Bool& cmd_msg){
 void setup() {
   // Enable the LED pin
   pinMode(LED_PIN, OUTPUT);
-  pinMode(19, INPUT_PULLUP);
+  pinMode(IS_ROVER_PIN, INPUT_PULLUP);
   nh.initNode();
   nh.subscribe(prop1_sub);
   nh.subscribe(prop2_sub);
@@ -99,7 +102,7 @@ void loop() {
 
 void set_motor_power(int motor_num, float input_power){
   input_power = constrain( input_power, -1, 1);
-  float output_power = map_float(input_power, -1, 1, 1000, 2000); // Convert to usuable microseconds
+  float output_power = map_float(input_power, -1, 1, PWM_LOW, PWM_HIGH); // Convert to usuable microseconds
   motors[motor_num].writeMicroseconds(output_power);
 }
 
@@ -113,6 +116,9 @@ bool motors_attached(){
 }
 
 void attach_motors(){
+  for(int i = 0; i < MOTOR_NUM; i++){
+    motors[i].writeMicroseconds((PWM_HIGH+PWM_LOW)/2);
+  }
   motors[0].attach(23); //Front left
   motors[1].attach(22); //Front right
   motors[2].attach(21); //Back left
