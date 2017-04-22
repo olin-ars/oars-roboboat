@@ -144,7 +144,7 @@ bool on_ground(){
 void handle_failsafes() {
   long t = millis();
   bool timedout = (t - last_message_millis) > TIMEOUT;
-  do_blink = !timedout;
+  do_blink = timedout;
   if (timedout) {
     if(motors_attached()){
       detach_motors();

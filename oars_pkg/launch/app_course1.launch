@@ -2,6 +2,5 @@
     <!-- Include core, jankboat hardware -->
     <include file="$(find oars_pkg)/launch/core.launch"/>
     <include file="$(find oars_pkg)/launch/hw_jankboat.launch"/>
-    <include file="$(find oars_pkg)/launch/joystick.launch"/>
 
 </launch>
