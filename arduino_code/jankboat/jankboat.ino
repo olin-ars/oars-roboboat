@@ -18,6 +18,7 @@
 #define IS_ROVER_RATE 5
 #define PWM_HIGH 2000
 #define PWM_LOW 1000
+#define ESC_DISCONNECT_WAIT 5
 
 Servo motors[MOTOR_NUM];
 bool do_blink = true;
@@ -95,7 +96,7 @@ void loop() {
   if(millis() - last_is_rover_pub > 1000/IS_ROVER_RATE){
     is_rover.data = on_ground();
     is_rover_pub.publish(&is_rover);
-    last_is_rover_pub = millis()
+    last_is_rover_pub = millis();
   }
   delay(1);
 }
@@ -128,6 +129,8 @@ void attach_motors(){
 //Stops writing to motors completely, not just setting "netural" position
 void detach_motors(){
   for(int i = 0; i < MOTOR_NUM; i++){
+    set_motor_power(i,0);
+    delay(ESC_DISCONNECT_WAIT);
     motors[i].detach();
   }
 }
