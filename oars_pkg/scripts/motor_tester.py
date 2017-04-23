@@ -19,6 +19,13 @@ class MotorTester(object):
 
         r = rospy.Rate(10)
 
+
+        for i in range(30):
+            self.stop()
+            print i
+
+            r.sleep()
+
         while not rospy.is_shutdown():
             for pub, pow in zip(self.publishers, pows):
                 pub.publish(pow)
