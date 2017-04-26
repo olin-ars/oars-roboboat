@@ -2,6 +2,10 @@
 	<include file="$(find oars_pkg)/launch/jankboat_tf.xml"/>
     <!-- Transformers for data types -->
 
+    <node pkg="robot_localization" type="navsat_transform_node">
+        <param name="delay" value="5"/>
+        <param name="zero_altitude" value="true"/>
+    </node>
 
     <!-- Global localization -->
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_map" output="screen">
