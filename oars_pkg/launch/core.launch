@@ -9,4 +9,8 @@
     <!-- Joystick Handler -->
     <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py"/>
 
+    <!--Websocket Rosbridge Server Stuff-->
+    <node name="rosbridge_server" pkg="rosbridge_server" type="rosbridge_websocket.py" />
+
+
 </launch>
