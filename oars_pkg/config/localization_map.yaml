@@ -1,55 +1,35 @@
+# This node attempts to precisely localize the vehicle directly in the map
+
 frequency: 20
 sensor_timeout: 0.5
 two_d_mode: false
 print_diagnostics: true
 publish_tf: true
-publish_acceleration: true
 
-map_frame: map
-odom_frame: pool
-base_link_frame: boat_link
-world_frame: pool
+map_frame: universe
+odom_frame: map
+base_link_frame: base_link
+world_frame: map
 
-odom0: ar_odometry
+odom0: /odometry/gps
 odom0_config:  [true, true, true,
                 false, false, false,
-                false, false, false,
+                true, true, true,
                 false, false, false,
                 false, false, false]
 odom0_nodelay: false
 odom0_differential: false
 odom0_relative: false
 
-imu0: ar_imu
+imu0: /imu/data
 imu0_config:  [false, false, false,
                 true, true, true,
                 false, false, false,
-                false, false, false,
+                true, true, true,
                 false, false, false]
 imu0_nodelay: false
 imu0_differential: false
 imu0_relative: false
-
-# twist0: speed
-# twist0_config: [false, false, false,
-#                 false, false, false,
-#                 true , true , true ,
-#                 false, false, false,
-#                 false, false, false]
-# twist0_queue_size: 2
-# twist0_nodelay: false
-# twist0_differential: false
-# twist0_relative: false
-
-# imu0: imu
-# imu0_config: [false, false, false,
-#               true,  true,  true,
-#               false, false, false,
-#               false, false, false,
-#               false, false, false]
-# imu0_nodelay: false
-# imu0_differential: false
-# imu0_relative: true
 # imu0_queue_size: 5
 # imu0_pose_rejection_threshold: 0.8
 # imu0_twist_rejection_threshold: 0.8
