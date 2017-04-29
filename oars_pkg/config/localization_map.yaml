@@ -14,7 +14,7 @@ world_frame: map
 odom0: /probably_still
 odom0_config:  [false, false, false, # Position
                 true, true, true, # Velocity
-                true, true, false, # Angle
+                false, false, false, # Angle
                 false, false, false, # Angular Velocity
                 false, false, false] # Acceleration
 odom0_differential: false
