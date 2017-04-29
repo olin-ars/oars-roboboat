@@ -19,7 +19,7 @@
         <param name="calibration_file" value="" />
     </node>
 
-    <node name="gps_node" pkg="nmea_navsat_driver" type="nmea_serial_driver">
+    <node name="gps_node" pkg="nmea_navsat_driver" type="nmea_serial_driver" ns="/gps">
         <param name="port" value="/dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_7_-_GPS_GNSS_Receiver-if00" />
     </node>
 
