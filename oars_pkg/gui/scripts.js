@@ -2,7 +2,7 @@
 // Connecting to ROS
 // -----------------
 
-var ros = setupROS(window.location.host);
+var ros = setupROS("ws://" + window.location.hostname + ":9090");
 
 function setupROS(rosIP) {
     var ros = new ROSLIB.Ros({

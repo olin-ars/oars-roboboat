@@ -35,7 +35,7 @@
   <div class="statusRow">   
   <br>Teensy: 
   <div style="background-position: -32px 0px;" id="teensystatus" class="statuslight"></div>
-  <script>setup_watchdog('/sail/pos', 'std_msgs/Float32', $('#teensystatus'))</script>
+  <script>setup_watchdog('/is_rover', 'std_msgs/Bool', $('#teensystatus'))</script>
   </div>
   </th>
 
@@ -48,7 +48,6 @@
   </div>
   </th>
 </tr>
-
 
 <tr>
   <th>
@@ -76,7 +75,7 @@
   <div class="statusRow">   
   <br>GPS: 
   <div style="background-position: -32px 0px;" id="fixstatus" class="statuslight"></div>
-  <script>setup_watchdog('/fix', 'sensor_msgs/NavSatFix', $('#fixstatus'))</script>
+  <script>setup_watchdog('/gps/fix', 'sensor_msgs/NavSatFix', $('#fixstatus'))</script>
   </div>
   </th>
 
@@ -99,6 +98,15 @@
   <script>setup_watchdog('/scan', 'sensor_msgs/LaserScan', $('#lidarstatus'))</script>
   </div>
   </th>
+
+  <th>
+  <!-- GPS Preprocessing -->
+  <div class="statusRow">   
+  <br>GPS Preprocessing:  
+  <div style="background-position: -32px 0px;" id="preprocessingstatus" class="statuslight"></div>
+  <script>setup_watchdog('/odometry/gps', 'nav_msgs/Odometry', $('#preprocessingstatus'))</script>
+  </div>
+  </th>
 </tr>
 
 <tr>
@@ -110,6 +118,16 @@
   <script>setup_watchdog('/camera/camera_info', 'sensor_msgs/CameraInfo', $('#camerastatus'))</script>
   </div>
   </th>
+
+  <th>
+  <!-- Map Location -->
+  <div class="statusRow">   
+  <br>Map Location:  
+  <div style="background-position: -32px 0px;" id="locationstatus" class="statuslight"></div>
+  <script>setup_watchdog('/odometry/filtered', 'nav_msgs/Odometry', $('#locationstatus'))</script>
+  </div>
+  </th>
+
 </tr>
 
 <tr>
