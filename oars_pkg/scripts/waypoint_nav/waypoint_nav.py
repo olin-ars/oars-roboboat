@@ -85,7 +85,7 @@ class Main(object):
                 if distance < checkoff_distance:
                     self.finishTask()
 
-                speed = bound(distance*P_const, 20, 100)
+                speed = bound(distance*P_const, 10, 50)
 
                 self.voter.dir_vote = createVote.directionVoteGauss(angle)
                 self.voter.speed_vote = createVote.max_speed(speed)
