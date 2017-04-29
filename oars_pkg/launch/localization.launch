@@ -3,7 +3,7 @@
 
     <!-- Transformers for data types -->
 
-    <node pkg="robot_localization" type="navsat_transform_node">
+    <node name="gps_transformer" pkg="robot_localization" type="navsat_transform_node">
         <param name="delay" value="5"/>
         <param name="zero_altitude" value="true"/>
     </node>
