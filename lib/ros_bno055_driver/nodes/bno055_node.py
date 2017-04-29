@@ -14,6 +14,28 @@ from Adafruit_BNO055.BNO055 import BNO055
 
 class BNO055Driver(object):
 
+    roll_pitch_cov = 10 * math.pi/180
+    yaw_cov = 20 * math.pi/180
+    orientation_covariance = [
+        roll_pitch_cov, 0.0, 0.0,
+        0.0, roll_pitch_cov, 0.0,
+        0.0, 0.0, yaw_cov
+    ]
+
+    ang_vel_cov = 5 * math.pi/180
+    angular_velocity_covariance = [
+        ang_vel_cov, 0.0, 0.0,
+        0.0, ang_vel_cov, 0.0,
+        0.0, 0.0, ang_vel_cov
+    ]
+
+    acc_cov = 0.5
+    linear_acceleration_covariance = [
+        acc_cov, 0.0, 0.0,
+        0.0, acc_cov, 0.0,
+        0.0, 0.0, acc_cov
+    ]
+
     def __init__(self):
         self.init_device()
         calibration_file = rospy.get_param('~calibration_file', 'bno055.json')
@@ -68,9 +90,9 @@ class BNO055Driver(object):
         self.imu_msg.header.seq = 0
 
         # ignore the covariance data
-        self.imu_msg.orientation_covariance[0] = -1
-        self.imu_msg.angular_velocity_covariance[0] = -1
-        self.imu_msg.linear_acceleration_covariance[0] = -1
+        self.imu_msg.orientation_covariance = self.orientation_covariance
+        self.imu_msg.angular_velocity_covariance = self.angular_velocity_covariance
+        self.imu_msg.linear_acceleration_covariance = self.linear_acceleration_covariance
 
         self.temp_msg = Temperature()
         self.temp_msg.header.frame_id = self.frame_id
