@@ -14,7 +14,7 @@ from Adafruit_BNO055.BNO055 import BNO055
 
 class BNO055Driver(object):
 
-    roll_pitch_cov = 10 * math.pi/180
+    roll_pitch_cov = 5 * math.pi/180
     yaw_cov = 20 * math.pi/180
     orientation_covariance = [
         roll_pitch_cov, 0.0, 0.0,
@@ -22,7 +22,7 @@ class BNO055Driver(object):
         0.0, 0.0, yaw_cov
     ]
 
-    ang_vel_cov = 5 * math.pi/180
+    ang_vel_cov = 0.01  # Gyroscopes are really good!
     angular_velocity_covariance = [
         ang_vel_cov, 0.0, 0.0,
         0.0, ang_vel_cov, 0.0,
@@ -43,7 +43,7 @@ class BNO055Driver(object):
             self.load_calibration(calibration_file)
         self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=1)
         self.temp_pub = rospy.Publisher('temperature', Temperature, queue_size=1)
-        self.frame_id = rospy.get_param('~frame_id', '/base_imu')
+        self.frame_id = rospy.get_param('~frame_id', 'imu')
         self.reset_msgs()
 
     def init_device(self):
