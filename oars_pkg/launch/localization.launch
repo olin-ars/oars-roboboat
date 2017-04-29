@@ -5,7 +5,10 @@
 
     <!-- Transformers for data types -->
 
+    <node name="gps_stupid_republisher" pkg="oars_pkg" type="GPS_stupid_republisher.py" ns="/gps"/>
+
     <node name="gps_transformer" pkg="robot_localization" type="navsat_transform_node">
+        <remap from="/gps/fix" to="/gps/fix2"/>
         <param name="delay" value="5"/>
         <param name="zero_altitude" value="true"/>
     </node>
