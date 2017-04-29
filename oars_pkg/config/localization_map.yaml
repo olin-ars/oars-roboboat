@@ -13,8 +13,8 @@ world_frame: map
 
 odom0: /probably_still
 odom0_config:  [false, false, false, # Position
-                true, true, true, # Velocity
                 false, false, false, # Angle
+                true, true, true, # Velocity
                 false, false, false, # Angular Velocity
                 false, false, false] # Acceleration
 odom0_differential: false
@@ -23,8 +23,8 @@ odom0_relative: false
 
 odom1: /odometry/gps
 odom1_config:  [true, true, true, # Position
-                false, false, false, # Velocity
                 false, false, false, # Angle
+                false, false, false, # Velocity
                 false, false, false, # Angular Velocity
                 false, false, false] # Acceleration
 odom1_differential: false
@@ -32,8 +32,8 @@ odom1_relative: false
 
 imu0: /imu/data
 imu0_config:  [false, false, false, # Position
-                false, false, false, # Velocity
                 true, true, true, # Angle
+                false, false, false, # Velocity
                 true, true, true, # Angular Velocity
                 true, true, true] # Acceleration
 imu0_differential: false
