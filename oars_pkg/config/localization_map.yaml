@@ -22,7 +22,7 @@ odom0_relative: false
 
 
 odom1: /odometry/gps
-odom0_config:  [true, true, true, # Position
+odom1_config:  [true, true, true, # Position
                 false, false, false, # Velocity
                 false, false, false, # Angle
                 false, false, false, # Angular Velocity
