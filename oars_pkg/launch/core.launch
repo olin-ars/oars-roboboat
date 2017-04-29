@@ -11,6 +11,6 @@
 
     <!--Websocket Rosbridge Server Stuff-->
     <node name="rosbridge_server" pkg="rosbridge_server" type="rosbridge_websocket.py" />
-
+    <node name="gui_server" pkg="oars_pkg" type="runserver.sh" />
 
 </launch>

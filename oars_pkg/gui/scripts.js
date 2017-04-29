@@ -2,7 +2,7 @@
 // Connecting to ROS
 // -----------------
 
-var ros = setupROS('ws://' + prompt('ROS IP address', '192.168.17.130') + ':9090')
+var ros = setupROS("ws://" + window.location.hostname + ":9090");
 
 function setupROS(rosIP) {
     var ros = new ROSLIB.Ros({
