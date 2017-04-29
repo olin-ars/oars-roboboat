@@ -1,6 +1,8 @@
 <launch>
 	<include file="$(find oars_pkg)/launch/jankboat_tf.xml"/>
 
+    <node name="assumptions" pkg="oars_pkg" type="probably_still.py"/>
+
     <!-- Transformers for data types -->
 
     <node name="gps_transformer" pkg="robot_localization" type="navsat_transform_node">

@@ -12,32 +12,33 @@ base_link_frame: base_link
 world_frame: map
 
 odom0: /probably_still
-odom0_config:  [true, true, true,
-                false, false, false,
-                false, false, false,
-                false, false, false,
-                false, false, false]
+odom0_config:  [false, false, false, # Position
+                true, true, true, # Velocity
+                true, true, false, # Angle
+                false, false, false, # Angular Velocity
+                false, false, false] # Acceleration
+odom0_differential: false
+odom0_relative: false
 
-#odom0: /odometry/gps
-#odom0_config:  [true, true, true,
-#                false, false, false,
-#                true, true, true,
-#                false, false, false,
-#                false, false, false]
-#odom0_nodelay: false
-#odom0_differential: false
-#odom0_relative: false
 
-#imu0: /imu/data
-#imu0_config:  [false, false, false,
-#                true, true, true,
-#                false, false, false,
-#                true, true, true,
-#                false, false, false]
-#imu0_nodelay: false
-#imu0_differential: false
-#imu0_relative: false
-# imu0_queue_size: 5
-# imu0_pose_rejection_threshold: 0.8
-# imu0_twist_rejection_threshold: 0.8
-# imu0_linear_acceleration_rejection_threshold: 0.8
+odom1: /odometry/gps
+odom0_config:  [true, true, true, # Position
+                false, false, false, # Velocity
+                false, false, false, # Angle
+                false, false, false, # Angular Velocity
+                false, false, false] # Acceleration
+odom1_differential: false
+odom1_relative: false
+
+imu0: /imu/data
+imu0_config:  [false, false, false, # Position
+                false, false, false, # Velocity
+                true, true, true, # Angle
+                true, true, true, # Angular Velocity
+                true, true, true] # Acceleration
+imu0_differential: false
+imu0_relative: false
+imu0_queue_size: 5
+imu0_pose_rejection_threshold: 0.8
+imu0_twist_rejection_threshold: 0.8
+imu0_linear_acceleration_rejection_threshold: 0.8
