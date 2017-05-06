@@ -74,6 +74,11 @@ class Buoy(CoursePoint):
         self.color = self.color_lookup[color]
 
     def as_markers(self):
+        """
+        Creates and returns a list of Marker objects used to visualize this Buoy.
+        In this case, that is a sphere or cylinder with the correct properties.
+        :return: List of visualization_msgs/Marker object
+        """
         marker = Marker()
 
         marker.header.frame_id = self.frame_id
@@ -95,7 +100,12 @@ class Buoy(CoursePoint):
 
 
 class NavigationGate(CoursePoint):
-    def __init__(self, json_object, frame_id='course/navigation_start', gate_width=3 * ft):
+    """
+    Represents a gate formed by two buoys as used in the navigation challenge.
+    TODO: extend to also apply to buoy pair used at entrance/exit of speed challenge
+    """
+
+    def __init__(self, json_object, frame_id='course/navigation_entrance', gate_width=3 * ft):
         super(NavigationGate, self).__init__(frame_id=frame_id)
         self.from_json(json_object)
 
@@ -111,11 +121,25 @@ class NavigationGate(CoursePoint):
         line.color = ColorRGBA(r=1, b=1, g=1, a=0.5)
         line.points = [self.leftBuoy.as_point(), self.rightBuoy.as_point()]
 
-        return list(itertools.chain([line], self.leftBuoy.as_markers(), self.rightBuoy.as_markers()))
+        return [line] + self.leftBuoy.as_markers() + self.rightBuoy.as_markers()
 
     def as_transforms(self):
         # TODO: figure out publishing transforms
         pass
+
+
+class NavigationChallenge(object):
+    """
+    Represents the navigation challenge, composed of two Navigation Gates.
+    TODO: This should probably subclass some sort of Challenge class for cleanliness
+    """
+
+    def __init__(self, json_object):
+        self.entrance_gate = NavigationGate(json_object['entrance_gate'], 'course/navigation_entrance')
+        self.exit_gate = NavigationGate(json_object['exit_gate'], 'course/navigation_exit')
+
+    def as_markers(self):
+        return self.entrance_gate.as_markers() + self.exit_gate.as_markers()
 
 
 class TFHandler(object):
@@ -124,12 +148,22 @@ class TFHandler(object):
 
         rospy.init_node('course_tf_handler')
 
+        self.name = 'Unnamed course'
+
         self.configFile = rospy.get_param('~config')
+
+        self.challenges = []
 
     def loadConfig(self):
         with open(self.configFile) as file:
             data = json.load(file)
+            if 'name' in data:
+                self.name = data['name']
+
+            if 'navigation_challenge' in data:
+                self.challenges.append(NavigationChallenge(data['navigation_challenge']))
             print data
+            print self.challenges
 
     def run(self):
         self.loadConfig()

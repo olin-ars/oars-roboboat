@@ -1,4 +1,20 @@
 {
   "name":"Sample course",
-  "root_position":[5,5]
+  "root_position":{
+    "x":0,
+    "y":0,
+    "theta":0
+  },
+  "navigation_challenge":{
+    "entrance_gate":{
+      "x":10.0,
+      "y":15.0,
+      "theta":120
+    },
+    "exit_gate":{
+      "x":20.0,
+      "y":15.0,
+      "theta":120
+    }
+  }
 }
