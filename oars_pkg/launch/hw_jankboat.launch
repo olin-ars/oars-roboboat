@@ -9,8 +9,13 @@
     <!-- Teensy connection code -->
     <!--<node name="rosserial_wrapper" pkg="oars_pkg" type="rosserial_wrapper.py" />-->
 
-    <node name="teensy_connector" pkg="rosserial_python" type="serial_node.py">
+    <node name="teensy_connector" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true" respawn_delay="10">
         <param name="port" value="/dev/serial/by-id/usb-Teensyduino_USB_Serial_1661530-if00"/>
+    </node>
+
+    <!-- Ethernet sensors -->
+    <node name="lidar_node" pkg="sick_tim" type="sick_tim551_2050001" output="screen">
+        <param name="hostname" value="192.168.0.1"/>
     </node>
 
     <!-- USB sensors -->
