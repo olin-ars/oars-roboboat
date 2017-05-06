@@ -1,30 +1,36 @@
 #!/usr/bin/env python
+import json
 import random
 
-import itertools
+import math
 import rospy
-
 import tf2_ros
-import tf2_geometry_msgs
-
-from math import sin, cos
-
-import json
-
-from geometry_msgs.msg import Pose2D, Point, Quaternion, Pose, Vector3
-from std_msgs.msg import ColorRGBA
+import tf_conversions
+from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, TransformStamped, Quaternion
+from std_msgs.msg import ColorRGBA, Header
 from visualization_msgs.msg import Marker, MarkerArray
 
 ft = 12 * 2.54 / 100
 
 
 class CoursePoint(object):
+    """
+    Base class to represent a 2D pose on the course.
+    """
+
     def __init__(self, x=0, y=0, theta=0, frame_id='course'):
+        """
+        :param x: x-coordinate of point in frame frame_id
+        :param y: x-coordinate of point in frame frame_id
+        :param theta: angle of point, in radians
+        :param frame_id: Name of the coordinate frame in which the CoursePoint is defined
+        """
         self.x = x
         self.y = y
         self.theta = theta
         self.frame_id = frame_id
 
+        # TODO: make IDs permanent across script restarts
         self.id = random.randint(0, 1 << 31)
 
     def from_json(self, json_object):
@@ -51,9 +57,22 @@ class CoursePoint(object):
         point = self.as_point()
         return Pose(position=point, orientation=quat)
 
+    def as_transforms(self, child_frame=None):
+        """
+        Calculates the Transform associated with this point
+        :param child_frame: The frame whose origin is attached to this point
+        :return: list of geometry_msgs/TransformStamped
+        """
+        pose = self.as_pose()
+        # TODO: consider publishing the transform dated in the future
+        header = Header(stamp=rospy.Time.now(), frame_id=self.frame_id)
+        transform = Transform(translation=pose.position, rotation=pose.orientation)
+        return [TransformStamped(header=header, child_frame_id=child_frame, transform=transform)]
+
     @staticmethod
     def angle_to_quaternion(theta):
-        return Quaternion(x=0, y=0, z=sin(theta / 2), w=-sin(theta / 2))
+        quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta * math.pi / 180)
+        return Quaternion(*quat)
 
 
 class Buoy(CoursePoint):
@@ -90,11 +109,11 @@ class Buoy(CoursePoint):
         if self.type == 'sphere':
             marker.type = Marker.SPHERE
             marker.scale = Vector3(x=self.sphere_size, y=self.sphere_size, z=self.sphere_size)
-            marker.pose.position.z += self.sphere_size/2
+            marker.pose.position.z += self.sphere_size / 2
         else:
             marker.type = Marker.CYLINDER
             marker.scale = Vector3(x=self.sphere_size, y=self.sphere_size, z=self.cylinder_height)
-            marker.pose.position.z += self.cylinder_height/2
+            marker.pose.position.z += self.cylinder_height / 2
 
         marker.color = self.color
 
@@ -107,16 +126,18 @@ class NavigationGate(CoursePoint):
     TODO: extend to also apply to buoy pair used at entrance/exit of speed challenge
     """
 
-    def __init__(self, json_object, frame_id='course/navigation_entrance', gate_width=3 * ft):
+    def __init__(self, json_object, frame_id='course', child_frame='course/navigation_entrance', gate_width=3 * ft):
         super(NavigationGate, self).__init__(frame_id=frame_id)
         self.from_json(json_object)
 
-        self.leftBuoy = Buoy(0, gate_width / 2, 'cylinder', 'red', frame_id)
-        self.rightBuoy = Buoy(0, -gate_width / 2, 'cylinder', 'green', frame_id)
+        self.child_frame = child_frame
+
+        self.leftBuoy = Buoy(0, gate_width / 2, 'cylinder', 'red', child_frame)
+        self.rightBuoy = Buoy(0, -gate_width / 2, 'cylinder', 'green', child_frame)
 
     def as_markers(self):
         line = Marker()
-        line.header.frame_id = self.frame_id
+        line.header.frame_id = self.child_frame
         line.type = Marker.LINE_STRIP
         line.ns = 'course'
         line.id = self.id
@@ -126,10 +147,6 @@ class NavigationGate(CoursePoint):
 
         return [line] + self.leftBuoy.as_markers() + self.rightBuoy.as_markers()
 
-    def as_transforms(self):
-        # TODO: figure out publishing transforms
-        pass
-
 
 class NavigationChallenge(object):
     """
@@ -138,11 +155,18 @@ class NavigationChallenge(object):
     """
 
     def __init__(self, json_object):
-        self.entrance_gate = NavigationGate(json_object['entrance_gate'], 'course/navigation_entrance')
-        self.exit_gate = NavigationGate(json_object['exit_gate'], 'course/navigation_exit')
+        # TODO: store this information inside the Gate object somewhere
+        self.entrance_gate = NavigationGate(json_object['entrance_gate'], 'course', child_frame='course/navigation_entrance')
+        self.exit_gate = NavigationGate(json_object['exit_gate'], 'course', child_frame='course/navigation_exit')
 
     def as_markers(self):
         return self.entrance_gate.as_markers() + self.exit_gate.as_markers()
+
+    def as_transforms(self):
+        return (
+            self.entrance_gate.as_transforms('course/navigation_entrance') +
+            self.exit_gate.as_transforms('course/navigation_exit')
+        )
 
 
 class TFHandler(object):
@@ -152,6 +176,7 @@ class TFHandler(object):
         rospy.init_node('course_tf_handler')
 
         self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
+        self.tf_pub = tf2_ros.TransformBroadcaster()
 
         self.name = 'Unnamed course'
         self.challenges = []
@@ -174,12 +199,19 @@ class TFHandler(object):
             markers.extend(challenge.as_markers())
         return markers
 
+    def as_transforms(self):
+        transforms = []
+        for challenge in self.challenges:
+            transforms.extend(challenge.as_transforms())
+        return transforms
+
     def run(self):
         self.loadConfig()
 
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
             self.marker_pub.publish(MarkerArray(self.as_markers()))
+            self.tf_pub.sendTransform(self.as_transforms())
 
             r.sleep()
 
