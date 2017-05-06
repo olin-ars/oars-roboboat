@@ -120,20 +120,21 @@ class Buoy(CoursePoint):
         return [marker]
 
 
-class NavigationGate(CoursePoint):
+class Gate(CoursePoint):
     """
-    Represents a gate formed by two buoys as used in the navigation challenge.
-    TODO: extend to also apply to buoy pair used at entrance/exit of speed challenge
+    Represents a gate formed by two buoys as used in the navigation challenge and the speed challenge.
     """
 
-    def __init__(self, json_object, frame_id='course', child_frame='course/navigation_entrance', gate_width=3 * ft):
-        super(NavigationGate, self).__init__(frame_id=frame_id)
+    def __init__(self, json_object,
+                 frame_id='course', child_frame='course/navigation_entrance',
+                 gate_width=3 * ft, shape='cylinder'):
+        super(Gate, self).__init__(frame_id=frame_id)
         self.from_json(json_object)
 
         self.child_frame = child_frame
 
-        self.leftBuoy = Buoy(0, gate_width / 2, 'cylinder', 'red', child_frame)
-        self.rightBuoy = Buoy(0, -gate_width / 2, 'cylinder', 'green', child_frame)
+        self.leftBuoy = Buoy(0, gate_width / 2, shape, 'red', child_frame)
+        self.rightBuoy = Buoy(0, -gate_width / 2, shape, 'green', child_frame)
 
     def as_markers(self):
         line = Marker()
@@ -141,7 +142,7 @@ class NavigationGate(CoursePoint):
         line.type = Marker.LINE_STRIP
         line.ns = 'course'
         line.id = self.id
-        line.color = ColorRGBA(r=1, b=1, g=1, a=1)
+        line.color = ColorRGBA(r=0, b=1, g=1, a=0.9)
         line.scale = Vector3(0.05, 0.05, 0.05)
         line.points = [self.leftBuoy.as_point(), self.rightBuoy.as_point()]
 
@@ -151,13 +152,14 @@ class NavigationGate(CoursePoint):
 class NavigationChallenge(object):
     """
     Represents the navigation challenge, composed of two Navigation Gates.
-    TODO: This should probably subclass some sort of Challenge class for cleanliness
     """
+
+    # TODO: This should probably subclass some sort of Challenge class for cleanliness
 
     def __init__(self, json_object):
         # TODO: store this information inside the Gate object somewhere
-        self.entrance_gate = NavigationGate(json_object['entrance_gate'], 'course', child_frame='course/navigation_entrance')
-        self.exit_gate = NavigationGate(json_object['exit_gate'], 'course', child_frame='course/navigation_exit')
+        self.entrance_gate = Gate(json_object['entrance_gate'], 'course', child_frame='course/navigation_entrance')
+        self.exit_gate = Gate(json_object['exit_gate'], 'course', child_frame='course/navigation_exit')
 
     def as_markers(self):
         return self.entrance_gate.as_markers() + self.exit_gate.as_markers()
@@ -166,6 +168,29 @@ class NavigationChallenge(object):
         return (
             self.entrance_gate.as_transforms('course/navigation_entrance') +
             self.exit_gate.as_transforms('course/navigation_exit')
+        )
+
+
+class SpeedChallenge(object):
+    """
+    Represents the Speed challenge, composed of one Gate and one Buoy.
+    """
+
+    # TODO: This should probably subclass some sort of Challenge class for cleanliness
+
+    def __init__(self, json_object):
+        self.gate = Gate(json_object['gate'], 'course', child_frame='course/speed_gate',
+                         shape='sphere', gate_width=5*ft)
+        self.buoy = Buoy(0, 0, type='sphere', color='blue')
+        self.buoy.from_json(json_object['buoy'])
+
+    def as_markers(self):
+        return self.gate.as_markers() + self.buoy.as_markers()
+
+    def as_transforms(self):
+        return (
+            self.gate.as_transforms('course/speed_gate') +
+            self.buoy.as_transforms('course/speed_buoy')
         )
 
 
@@ -190,8 +215,9 @@ class TFHandler(object):
 
             if 'navigation_challenge' in data:
                 self.challenges.append(NavigationChallenge(data['navigation_challenge']))
-            print data
-            print self.challenges
+
+            if 'speed_challenge' in data:
+                self.challenges.append(SpeedChallenge(data['speed_challenge']))
 
     def as_markers(self):
         markers = []
@@ -207,6 +233,8 @@ class TFHandler(object):
 
     def run(self):
         self.loadConfig()
+
+        print 'Running'
 
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
