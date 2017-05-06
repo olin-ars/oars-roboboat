@@ -49,7 +49,7 @@ class CoursePoint(object):
     def as_pose(self):
         quat = CoursePoint.angle_to_quaternion(self.theta)
         point = self.as_point()
-        return Pose(point=point, orientation=quat)
+        return Pose(position=point, orientation=quat)
 
     @staticmethod
     def angle_to_quaternion(theta):
@@ -85,15 +85,17 @@ class Buoy(CoursePoint):
 
         marker.ns = 'course'
         marker.id = self.id
+        marker.pose = self.as_pose()
 
         if self.type == 'sphere':
             marker.type = Marker.SPHERE
             marker.scale = Vector3(x=self.sphere_size, y=self.sphere_size, z=self.sphere_size)
+            marker.pose.position.z += self.sphere_size/2
         else:
             marker.type = Marker.CYLINDER
             marker.scale = Vector3(x=self.sphere_size, y=self.sphere_size, z=self.cylinder_height)
+            marker.pose.position.z += self.cylinder_height/2
 
-        marker.pose = self.as_pose()
         marker.color = self.color
 
         return [marker]
@@ -118,7 +120,8 @@ class NavigationGate(CoursePoint):
         line.type = Marker.LINE_STRIP
         line.ns = 'course'
         line.id = self.id
-        line.color = ColorRGBA(r=1, b=1, g=1, a=0.5)
+        line.color = ColorRGBA(r=1, b=1, g=1, a=1)
+        line.scale = Vector3(0.05, 0.05, 0.05)
         line.points = [self.leftBuoy.as_point(), self.rightBuoy.as_point()]
 
         return [line] + self.leftBuoy.as_markers() + self.rightBuoy.as_markers()
@@ -148,11 +151,11 @@ class TFHandler(object):
 
         rospy.init_node('course_tf_handler')
 
+        self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
+
         self.name = 'Unnamed course'
-
-        self.configFile = rospy.get_param('~config')
-
         self.challenges = []
+        self.configFile = rospy.get_param('~config')
 
     def loadConfig(self):
         with open(self.configFile) as file:
@@ -165,9 +168,20 @@ class TFHandler(object):
             print data
             print self.challenges
 
+    def as_markers(self):
+        markers = []
+        for challenge in self.challenges:
+            markers.extend(challenge.as_markers())
+        return markers
+
     def run(self):
         self.loadConfig()
-        rospy.spin()
+
+        r = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            self.marker_pub.publish(MarkerArray(self.as_markers()))
+
+            r.sleep()
 
 
 if __name__ == '__main__':
