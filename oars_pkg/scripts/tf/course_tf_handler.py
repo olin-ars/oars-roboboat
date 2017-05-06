@@ -10,12 +10,15 @@ from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, Transform
 from std_msgs.msg import ColorRGBA, Header
 from visualization_msgs.msg import Marker, MarkerArray
 
-ft = 12 * 2.54 / 100
+# Define units for convenience later
+inch = 2.54 / 100
+foot = 12 * inch
 
 
 class CoursePoint(object):
     """
-    Base class to represent a 2D pose on the course.
+    Base class to represent a 2D pose on the course. It has helper functions
+    to convert to various other data types that are useful in different contexts.
     """
 
     def __init__(self, x=0, y=0, theta=0, frame_id='course'):
@@ -34,6 +37,12 @@ class CoursePoint(object):
         self.id = random.randint(0, 1 << 31)
 
     def from_json(self, json_object):
+        """
+        Updates the position and (if available) orientation of this Point using the data in the provided
+        JSON blob. This should be called after the CoursePoint has been initialized.
+        :param (dict) json_object:
+        :return: self
+        """
         # TODO: This probably isn't the best way to make an object with (kinda) multiple constructors
         self.x = json_object['x']
         self.y = json_object['y']
@@ -59,9 +68,9 @@ class CoursePoint(object):
 
     def as_transforms(self, child_frame=None):
         """
-        Calculates the Transform associated with this point
+        Calculates the Transform associated with this point, in this case a list of length 1
         :param child_frame: The frame whose origin is attached to this point
-        :return: list of geometry_msgs/TransformStamped
+        :return list of TransformStamped: Transforms associated with this point
         """
         pose = self.as_pose()
         # TODO: consider publishing the transform dated in the future
@@ -81,22 +90,22 @@ class Buoy(CoursePoint):
                     'blue': ColorRGBA(b=1, a=1),
                     'white': ColorRGBA(r=1, g=1, b=1, a=1)}
 
-    sphere_size = 0.3
     cylinder_height = 1.0
 
-    def __init__(self, x, y, type='cylinder', color='red', frame_id='course'):
+    def __init__(self, x, y, kind='cylinder', color='red', frame_id='course', sphere_size=0.3):
         super(Buoy, self).__init__(x, y, frame_id=frame_id)
 
-        assert (type in ['cylinder', 'sphere'])
+        assert (kind in ['cylinder', 'sphere'])
 
-        self.type = type
+        self.kind = kind
         self.color = self.color_lookup[color]
+        self.sphere_size = sphere_size
 
     def as_markers(self):
         """
         Creates and returns a list of Marker objects used to visualize this Buoy.
         In this case, that is a sphere or cylinder with the correct properties.
-        :return: List of visualization_msgs/Marker object
+        :return list of Marker: Markers associated with this object
         """
         marker = Marker()
 
@@ -106,7 +115,7 @@ class Buoy(CoursePoint):
         marker.id = self.id
         marker.pose = self.as_pose()
 
-        if self.type == 'sphere':
+        if self.kind == 'sphere':
             marker.type = Marker.SPHERE
             marker.scale = Vector3(x=self.sphere_size, y=self.sphere_size, z=self.sphere_size)
             marker.pose.position.z += self.sphere_size / 2
@@ -122,12 +131,19 @@ class Buoy(CoursePoint):
 
 class Gate(CoursePoint):
     """
-    Represents a gate formed by two buoys as used in the navigation challenge and the speed challenge.
+    Represents a gate formed by two buoys as used in the navigation challenge or the speed challenge.
     """
 
     def __init__(self, json_object,
                  frame_id='course', child_frame='course/navigation_entrance',
-                 gate_width=3 * ft, shape='cylinder'):
+                 gate_width=3 * foot, shape='cylinder'):
+        """
+        :param (dict) json_object:
+        :param (string) frame_id: The tf frame in which the coordinates of the Gate are defined
+        :param (string) child_frame: The tf frame locked to the center of the Gate
+        :param (float) gate_width: The approximate centerline distance between the two buoys, in meters
+        :param (string) shape: One of "cylinder" or "sphere" depending on the type of the buoys
+        """
         super(Gate, self).__init__(frame_id=frame_id)
         self.from_json(json_object)
 
@@ -137,6 +153,10 @@ class Gate(CoursePoint):
         self.rightBuoy = Buoy(0, -gate_width / 2, shape, 'green', child_frame)
 
     def as_markers(self):
+        """
+        Returns three markers: one cylinder or sphere for each buoy, and a line connecting them.
+        :return List of Marker
+        """
         line = Marker()
         line.header.frame_id = self.child_frame
         line.type = Marker.LINE_STRIP
@@ -151,13 +171,13 @@ class Gate(CoursePoint):
 
 class NavigationChallenge(object):
     """
-    Represents the navigation challenge, composed of two Navigation Gates.
+    Represents the navigation challenge setup, composed of two Navigation Gates.
     """
 
     # TODO: This should probably subclass some sort of Challenge class for cleanliness
 
     def __init__(self, json_object):
-        # TODO: store this information inside the Gate object somewhere
+        # TODO: store the child frame information inside the Gate object to prevent duplication
         self.entrance_gate = Gate(json_object['entrance_gate'], 'course', child_frame='course/navigation_entrance')
         self.exit_gate = Gate(json_object['exit_gate'], 'course', child_frame='course/navigation_exit')
 
@@ -176,12 +196,10 @@ class SpeedChallenge(object):
     Represents the Speed challenge, composed of one Gate and one Buoy.
     """
 
-    # TODO: This should probably subclass some sort of Challenge class for cleanliness
-
     def __init__(self, json_object):
         self.gate = Gate(json_object['gate'], 'course', child_frame='course/speed_gate',
-                         shape='sphere', gate_width=5*ft)
-        self.buoy = Buoy(0, 0, type='sphere', color='blue')
+                         shape='sphere', gate_width=5 * foot)
+        self.buoy = Buoy(0, 0, kind='sphere', color='blue')
         self.buoy.from_json(json_object['buoy'])
 
     def as_markers(self):
@@ -195,21 +213,34 @@ class SpeedChallenge(object):
 
 
 class TFHandler(object):
+    """
+    Class for the ROS node associated with managing and handling tf frames for RoboBoat.
+    """
     def __init__(self):
         super(TFHandler, self).__init__()
 
         rospy.init_node('course_tf_handler')
+
+        config_file = rospy.get_param('~config')
 
         self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
         self.tf_pub = tf2_ros.TransformBroadcaster()
 
         self.name = 'Unnamed course'
         self.challenges = []
-        self.configFile = rospy.get_param('~config')
+        self.loadConfig(config_file)
 
-    def loadConfig(self):
-        with open(self.configFile) as file:
-            data = json.load(file)
+    def loadConfig(self, config_file):
+        """
+        Loads data from the JSON configuration file provided.
+        Note that any field objects not present in the file will be silently ignored, and neither
+        their visualization nor their tf frames will be published.
+
+        :param (string) config_file: The filename of the config file
+        """
+        with open(config_file) as f:
+            data = json.load(f)
+
             if 'name' in data:
                 self.name = data['name']
 
@@ -231,12 +262,16 @@ class TFHandler(object):
             transforms.extend(challenge.as_transforms())
         return transforms
 
-    def run(self):
-        self.loadConfig()
+    def run(self, rate=5):
+        """
+        Runs the node, continually republishing the visualization markers and transform frames.
+        :param (int) rate: Base publishing frequency, in hz
+        :return:
+        """
 
         print 'Running'
 
-        r = rospy.Rate(5)
+        r = rospy.Rate(rate)
         while not rospy.is_shutdown():
             self.marker_pub.publish(MarkerArray(self.as_markers()))
             self.tf_pub.sendTransform(self.as_transforms())
