@@ -14,6 +14,28 @@ from Adafruit_BNO055.BNO055 import BNO055
 
 class BNO055Driver(object):
 
+    roll_pitch_cov = 5 * math.pi/180
+    yaw_cov = 20 * math.pi/180
+    orientation_covariance = [
+        roll_pitch_cov, 0.0, 0.0,
+        0.0, roll_pitch_cov, 0.0,
+        0.0, 0.0, yaw_cov
+    ]
+
+    ang_vel_cov = 0.01  # Gyroscopes are really good!
+    angular_velocity_covariance = [
+        ang_vel_cov, 0.0, 0.0,
+        0.0, ang_vel_cov, 0.0,
+        0.0, 0.0, ang_vel_cov
+    ]
+
+    acc_cov = 0.5
+    linear_acceleration_covariance = [
+        acc_cov, 0.0, 0.0,
+        0.0, acc_cov, 0.0,
+        0.0, 0.0, acc_cov
+    ]
+
     def __init__(self):
         self.init_device()
         calibration_file = rospy.get_param('~calibration_file', 'bno055.json')
@@ -21,7 +43,7 @@ class BNO055Driver(object):
             self.load_calibration(calibration_file)
         self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=1)
         self.temp_pub = rospy.Publisher('temperature', Temperature, queue_size=1)
-        self.frame_id = rospy.get_param('~frame_id', '/base_imu')
+        self.frame_id = rospy.get_param('~frame_id', 'imu')
         self.reset_msgs()
 
     def init_device(self):
@@ -68,9 +90,9 @@ class BNO055Driver(object):
         self.imu_msg.header.seq = 0
 
         # ignore the covariance data
-        self.imu_msg.orientation_covariance[0] = -1
-        self.imu_msg.angular_velocity_covariance[0] = -1
-        self.imu_msg.linear_acceleration_covariance[0] = -1
+        self.imu_msg.orientation_covariance = self.orientation_covariance
+        self.imu_msg.angular_velocity_covariance = self.angular_velocity_covariance
+        self.imu_msg.linear_acceleration_covariance = self.linear_acceleration_covariance
 
         self.temp_msg = Temperature()
         self.temp_msg.header.frame_id = self.frame_id

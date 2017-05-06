@@ -43,13 +43,13 @@ rosdep --ignore-src install --from-paths $(rospack find oars_pkg)/..
 
     * The Raspberry Pi should be powered from a USB power bank
 
-2. Connect to the tugboat via ssh
+2. Connect to the tugboat via SSH
 
-    * Connect to the `OLIN-ROBOTICS` wifi network (password `R0B0TS-RULE`)
+    * Connect to the `OLIN-ROBOTICS` WiFI network (password `R0B0TS-RULE`)
 
     * Visit [https://7a7b657d70.dataplicity.io/](https://7a7b657d70.dataplicity.io/) and find the "inet addr" starting with 192.168.\**.\**
 
-    * In a terminal, connect to the Raspberry Pi using the command 
+    * In Terminal, connect to the Raspberry Pi using the command
 `ssh pi@192.168.**.**` (with the IP address from above)
 
         1. The password is `raspberry`
@@ -64,27 +64,28 @@ rosdep --ignore-src install --from-paths $(rospack find oars_pkg)/..
 
     * `git pull`
 
-4. Run the code on the boat computer
+4. Run the code on the boat computer (over SSH)
 
     * In one tab: `roscore`
 
-    * In the other tab: `roslaunch oars_pkg bringup.launch`
+    * In another tab, launch one of the launch files beginning with `app_`. These correspond to different modes of operation (e.g. piloting Jankboat
+1 around obstacle course A, piloting the tugboat in search of an underwater sound's source). For example, run `roslaunch oars_pkg app_tugboat.launch` to pilot the tugboat.
 
-5. Connect your computer as a joystick
+5. (Optional) Use a joystick to manually control the boat. Note: All of these commands should be run on **your computer**, not on the boat (via SSH).
 
-* Plug in the controller
+    a) Plug in the controller to your computer via USB
 
-* Tell your computer that a ROS master is running on the tugboat: 
+    b) Tell your computer that a ROS master is running on the tugboat:
 `export ROS_MASTER_URI=http://<tugboat_ip_address>:11311`
 
-* Tell ROS what your IP address is:
-`export ROS_IP=<your_ip_address>`
+    c) Tell ROS what your IP address is: `export ROS_IP=<your_ip_address>`
 
-* Run joystick node: `rosrun joy joy_node`
+    d) Launch the necessary nodes: `roslaunch oars_pkg joystick.launch`
 
-    2. If it doesn’t find the joystick, check that you can see it as `/dev/input/js#`
+    * If you're running into trouble, make sure your computer can see the joystick by running `ls /dev/input/js*`. (There may be multiple `js#` devices
+on your computer, so you might want to try disconnecting the joystick, running the aforementioned command, plugging the joystick back in, and running the command again to make sure a new device showed up.)
 
-    3. If `js#` isn’t `js0`: `rosrun joy joy_node _dev:=/dev/input/js#`
+    * If the joystick isn’t `js0`, run `roslaunch oars_pkg joystick.launch dev:=/dev/input/js#` (where the `#` is replaced by the correct number).
 
 
 

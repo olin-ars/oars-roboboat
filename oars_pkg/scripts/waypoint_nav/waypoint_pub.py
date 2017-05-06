@@ -21,7 +21,7 @@ msg.point.y = y
 
 rospy.sleep(0.1)
 
-msg.header.frame_id = "world"
+msg.header.frame_id = "map"
 
 wp_pub.publish(msg)
 
