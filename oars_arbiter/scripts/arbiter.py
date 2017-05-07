@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 import numpy as np
+
 from request_handler import Arbiter_Request_Handler
 
 #maximum time between requests from a behavior

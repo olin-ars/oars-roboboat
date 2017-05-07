@@ -1,0 +1,12 @@
+<launch>
+    <!-- <node name="ar_visualization_transform" pkg="tf" type="static_transform_publisher"
+         args="0 0 0 1.57 0 0 /ar_marker_0 /boat_link_ar 100" /> -->
+
+    <node name="imu_tf" pkg="tf" type="static_transform_publisher"
+         args="0 0 0 0 0 0 /base_link /imu 2" />
+
+    <node name="gps_tf" pkg="tf" type="static_transform_publisher"
+         args="0 0 0 0 0 0 /base_link /gps 2" />
+
+
+</launch>

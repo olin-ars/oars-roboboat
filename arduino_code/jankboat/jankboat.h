@@ -1,0 +1,12 @@
+void handle_failsafes();
+void handle_status_LED();
+void set_motor_power(int motor_num, float input_power);
+bool motors_attached();
+void attach_motors();
+void detach_motors();
+bool on_ground();
+void motor1_cb( const std_msgs::Float32& cmd_msg);
+void motor2_cb( const std_msgs::Float32& cmd_msg);
+void motor3_cb( const std_msgs::Float32& cmd_msg);
+void motor4_cb( const std_msgs::Float32& cmd_msg);
+void estop_cb( const std_msgs::Bool& cmd_msg);

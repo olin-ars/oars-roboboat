@@ -45,13 +45,20 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>rosbridge_server</build_depend>
   <build_depend>nmea_navsat_driver</build_depend>
+  <build_depend>bosch_bno055_driver</build_depend>
   <build_depend>joy</build_depend>
+  <build_depend>smach</build_depend>
+  <build_depend>robot_localization</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>rosbridge_server</run_depend>
   <run_depend>nmea_navsat_driver</run_depend>
+  <run_depend>bosch_bno055_driver</run_depend>
   <run_depend>joy</run_depend>
+  <run_depend>smach</run_depend>
+  <run_depend>robot_localization</run_depend>
+
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -5,69 +5,43 @@ task developers, only extended.
 """
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
+import smach
+import time
 
 
 class Plan(object):
     """
     A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
     """
-    def __init__(self, name, tasklist):
+    def __init__(self, name, sm):
         """
         :type tasklist: list of Task
         """
         self.name = name
-        self.tasklist = tasklist
-        self.numTasksCompleted = 0
-        self.currenttask = None
-        self.active = False
+        self.sm = sm
 
-    def execute(self):
-        if not self.active:
-            self.numTasksCompleted = 0
-            self.active = True
-            self.startnexttask()
-
-    def stop(self):
-        if self.active:
-            self.active = False
-            currenttask = self.tasklist[self.numTasksCompleted]
-
-            currenttask.stop()
-
-    def skipcurrenttask(self):
-        """
-        Aborts the execution of the current task
-        """
-        if self.active:
-            # Note that calling stop() on a task should always trigger the taskcompletioncallback,
-            # which increments the active task before continuing
-            # TODO: Consider creating an additional method to allow cleaning up a task without triggering the callback
-            self.currenttask.stop()
-
-    def startnexttask(self):
-        if self.numTasksCompleted >= len(self.tasklist):
-            self.active = False
-            return
-        self.currenttask = self.tasklist[self.numTasksCompleted]
-        self.currenttask.start(self.taskcompletioncallback)
-
-    def taskcompletioncallback(self):
-        if self.active:
-            self.numTasksCompleted += 1
-            self.startnexttask()
-
-
-class Task(object):
+class Task(smach.State):
     """Task is the base class for anything that can go in a plan"""
 
     def __init__(self, name):
-        super(Task, self).__init__()
+        smach.State.__init__(self, outcomes = ['done'])
 
         self.name = name
 
         self.finishCallback = lambda: None
         self.active = False
+        self.statusPub = rospy.Publisher('smach', String, queue_size=10)
+
+    def execute(self, userdata): 
+    	self.start(None)
+
+    	while self.active and not rospy.is_shutdown():
+    		time.sleep(0.01)
+            self.statusPub.publish(self.name)
+
+    	return 'done'
+
 
     def start(self, finishcallback):
         """

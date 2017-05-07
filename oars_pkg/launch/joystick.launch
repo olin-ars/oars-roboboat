@@ -1,0 +1,8 @@
+<launch>
+    <!-- Allow manual specification of serial port number -->
+    <arg name="dev" />
+    <!-- RC joystick code -->
+    <node name="joystick_raw" pkg="joy" type="joy_node">
+        <param name="dev" value="$(arg dev)"/>
+    </node>
+</launch>

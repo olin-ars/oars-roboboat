@@ -1,0 +1,16 @@
+<launch>
+
+    <!-- Launch Arbiter and Behavior Engine -->
+    <node name="arbiter" pkg="oars_arbiter" type="arbiter.py" />
+
+    <!-- Behavior Engine -->
+    <node name="behavior_engine" pkg="oars_pkg" type="planner.py"/>
+
+    <!-- Joystick Handler -->
+    <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py"/>
+
+    <!--Websocket Rosbridge Server Stuff-->
+    <node name="rosbridge_server" pkg="rosbridge_server" type="rosbridge_websocket.py" />
+    <node name="gui_server" pkg="oars_pkg" type="runserver.sh" />
+
+</launch>
