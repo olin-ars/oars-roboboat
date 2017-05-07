@@ -45,7 +45,7 @@ class Arbiter(Arbiter_Request_Handler):
 		""" function for converting votes from the -1:1 scale 
 		to a -inf:inf scale (I promise, this is a real function)
 		"""
-		pos = np.abs(votes)
+		pos = np.abs(votes)*.99999
 		scaled_pos = (1+pos)/(1-pos)-1
 		scaled = np.sign(votes)*scaled_pos*weight
 		return scaled
@@ -94,6 +94,7 @@ class Arbiter(Arbiter_Request_Handler):
 			and not at all if the boat is going either forward or
 			backward
 		"""
+                max_turn = 10
 		if self.heading > 50:
 			x=100-self.heading
 			flip=-1
@@ -102,7 +103,8 @@ class Arbiter(Arbiter_Request_Handler):
 			flip=1
 		if x < 25: turn = -(x/25.)**2*25
 		else: turn = x-50
-		return int(round(turn*flip+25))
+                print turn
+		return int(round((turn*flip*max_turn/25.)+25))
 
 	def main(self):
 		""" main loop for arbiter, continually outputs final
