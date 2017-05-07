@@ -21,7 +21,7 @@ class CoursePoint(object):
     to convert to various other data types that are useful in different contexts.
     """
 
-    def __init__(self, x=0, y=0, theta=0, frame_id='course'):
+    def __init__(self, x=0, y=0, theta=None, frame_id='course'):
         """
         :param x: x-coordinate of point in frame frame_id
         :param y: x-coordinate of point in frame frame_id
@@ -56,7 +56,7 @@ class CoursePoint(object):
         return self
 
     def as_pose2d(self):
-        return Pose2D(x=self.x, y=self.y, theta=self.theta)
+        return Pose2D(x=self.x, y=self.y, theta=self.theta or 0)
 
     def as_point(self):
         return Point(x=self.x, y=self.y)
@@ -80,6 +80,8 @@ class CoursePoint(object):
 
     @staticmethod
     def angle_to_quaternion(theta):
+        if theta is None:
+            theta = 0
         quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta * math.pi / 180)
         return Quaternion(*quat)
 
@@ -201,6 +203,9 @@ class SpeedChallenge(object):
                          shape='sphere', gate_width=5 * foot)
         self.buoy = Buoy(0, 0, kind='sphere', color='blue')
         self.buoy.from_json(json_object['buoy'])
+
+        if self.buoy.theta is None:
+            self.buoy.theta = self.gate.theta
 
     def as_markers(self):
         return self.gate.as_markers() + self.buoy.as_markers()
