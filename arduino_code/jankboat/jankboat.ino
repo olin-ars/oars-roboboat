@@ -139,7 +139,7 @@ void stop() {
 void handle_failsafes() {
   long t = millis();
   timedout = (t - last_message_millis) > TIMEOUT;
-  do_blink = !timedout;
+  do_blink = timedout;
 
   if (timedout) {
     stop();

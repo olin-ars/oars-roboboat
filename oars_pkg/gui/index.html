@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<!--- This file came from http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality -->
+
+<script type="text/javascript" src="eventemitter2.min.js"></script>
+<script type="text/javascript" src="roslib.min.js"></script>
+<script type="text/javascript" src="jquery-2.2.2.js"></script>
+
+<link rel="stylesheet" href="stylesheet.css" type="text/css">
+
+<script type="text/javascript" src="scripts.js"></script>
+</head>
+
+<body>
+  <h1>ORS Mission Control</h1>
+  <hr>
+  <h2>Internal state visualizations</h2>
+  <div>Local position: <span class="numdisplay" id="local_pos">[data missing]</span></div>
+  <hr>
+  <h2>Status</h2>
+
+<table style="width:100%">
+
+<tr>
+<th>Sensors</th>
+<th>Software</th>
+</tr>
+
+<tr>
+  <!-- Teensy -->
+  <th>
+  <div class="statusRow">   
+  <br>Teensy: 
+  <div style="background-position: -32px 0px;" id="teensystatus" class="statuslight"></div>
+  <script>setup_watchdog('/is_rover', 'std_msgs/Bool', $('#teensystatus'))</script>
+  </div>
+  </th>
+
+  <th>
+  <!-- Arbiter -->
+  <div class="statusRow">   
+  <br>Arbiter:  
+  <div style="background-position: -32px 0px;" id="arbiterstatus" class="statuslight"></div>
+  <script>setup_watchdog('/cmd_vel', 'geometry_msgs/Twist', $('#arbiterstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+<tr>
+  <th>
+  <!-- IMU -->
+  <div class="statusRow">   
+  <br>IMU: 
+  <div style="background-position: -32px 0px;" id="imustatus" class="statuslight"></div>
+  <script>setup_watchdog('/imu/data', 'sensor_msgs/Imu', $('#imustatus'))</script>
+  </div>
+  </th>
+
+  <th>
+  <!-- Motor Controller -->
+  <div class="statusRow">   
+  <br>Motor Controller:  
+  <div style="background-position: -32px 0px;" id="motorcontrollerstatus" class="statuslight"></div>
+  <script>setup_watchdog('/motor1', 'std_msgs/Float32', $('#motorcontrollerstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+<tr>
+  <th>
+  <!-- Fix/ GPS -->
+  <div class="statusRow">   
+  <br>GPS: 
+  <div style="background-position: -32px 0px;" id="fixstatus" class="statuslight"></div>
+  <script>setup_watchdog('/gps/fix', 'sensor_msgs/NavSatFix', $('#fixstatus'))</script>
+  </div>
+  </th>
+
+  <th>
+  <!-- Behavior Engine -->
+  <div class="statusRow">   
+  <br>State Machine Active:  
+  <div style="background-position: -32px 0px;" id="smachstatus" class="statuslight"></div>
+  <script>setup_watchdog('/smach', 'std_msgs/String', $('#smachstatus'))</script>
+  </div>
+  </th>
+  </tr>
+
+<tr>
+  <th>
+  <!-- Lidar -->
+  <div class="statusRow">   
+  <br>Lidar:  
+  <div style="background-position: -32px 0px;" id="lidarstatus" class="statuslight"></div>
+  <script>setup_watchdog('/scan', 'sensor_msgs/LaserScan', $('#lidarstatus'))</script>
+  </div>
+  </th>
+
+  <th>
+  <!-- GPS Preprocessing -->
+  <div class="statusRow">   
+  <br>GPS Preprocessing:  
+  <div style="background-position: -32px 0px;" id="preprocessingstatus" class="statuslight"></div>
+  <script>setup_watchdog('/odometry/gps', 'nav_msgs/Odometry', $('#preprocessingstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+<tr>
+  <th>
+  <!-- Camera -->
+  <div class="statusRow">   
+  <br>Camera:  
+  <div style="background-position: -32px 0px;" id="camerastatus" class="statuslight"></div>
+  <script>setup_watchdog('/camera/camera_info', 'sensor_msgs/CameraInfo', $('#camerastatus'))</script>
+  </div>
+  </th>
+
+  <th>
+  <!-- Map Location -->
+  <div class="statusRow">   
+  <br>Map Location:  
+  <div style="background-position: -32px 0px;" id="locationstatus" class="statuslight"></div>
+  <script>setup_watchdog('/odometry/filtered', 'nav_msgs/Odometry', $('#locationstatus'))</script>
+  </div>
+  </th>
+
+</tr>
+
+<tr>
+  <th>
+  <!-- Joystick -->
+  <div class="statusRow">   
+  <br>Joystick:  
+  <div style="background-position: -32px 0px;" id="joystickstatus" class="statuslight"></div>
+  <script>setup_watchdog('/joy', 'sensor_msgs/Joy', $('#joystickstatus'))</script>
+  </div>
+  </th>
+</tr>
+
+</table>
+
+
+
+</body>
+</html>
