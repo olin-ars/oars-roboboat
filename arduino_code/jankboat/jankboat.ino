@@ -25,6 +25,7 @@ bool do_blink = true;
 long last_message_millis = -1e5;
 long last_is_rover_pub = 0;
 bool estopped = false;
+bool timedout = true;
 
 ros::NodeHandle  nh;
 ros::Subscriber<std_msgs::Float32> prop1_sub("/motor1", motor1_cb);
@@ -65,9 +66,7 @@ void estop_cb( const std_msgs::Bool& cmd_msg){
   if(cmd_msg.data != estopped){
     estopped = cmd_msg.data;
     if(estopped){
-      detach_motors();
-    }else{
-      attach_motors();
+      stop();
     }
   }
   last_message_millis = millis();
@@ -87,6 +86,16 @@ void setup() {
   nh.advertise(is_rover_pub);
   attach_motors();
 
+  delay(3000);
+}
+
+void attach_motors(){
+  stop();
+
+  motors[0].attach(23); //Front left
+  motors[1].attach(22); //Front right
+  motors[2].attach(21); //Back left
+  motors[3].attach(20); //back right
 }
 
 void loop() {
@@ -104,34 +113,11 @@ void loop() {
 void set_motor_power(int motor_num, float input_power){
   input_power = constrain( input_power, -1, 1);
   float output_power = map_float(input_power, -1, 1, PWM_LOW, PWM_HIGH); // Convert to usuable microseconds
-  motors[motor_num].writeMicroseconds(output_power);
-}
 
-bool motors_attached(){
-  for(int i = 0; i < MOTOR_NUM; i++){
-    if(!motors[i].attached()){
-      return false;
-    }
-  }
-  return true;
-}
-
-void attach_motors(){
-  for(int i = 0; i < MOTOR_NUM; i++){
-    motors[i].writeMicroseconds((PWM_HIGH+PWM_LOW)/2);
-  }
-  motors[0].attach(23); //Front left
-  motors[1].attach(22); //Front right
-  motors[2].attach(21); //Back left
-  motors[3].attach(20); //back right
-}
-
-//Stops writing to motors completely, not just setting "netural" position
-void detach_motors(){
-  for(int i = 0; i < MOTOR_NUM; i++){
-    set_motor_power(i,0);
-    delay(ESC_DISCONNECT_WAIT);
-    motors[i].detach();
+  if (!timedout && !estopped){
+    motors[motor_num].writeMicroseconds(output_power);
+  }else{
+    motors[motor_num].writeMicroseconds((PWM_LOW + PWM_HIGH)/2);
   }
 }
 
@@ -144,18 +130,19 @@ bool on_ground(){
   }
 }
 
+void stop() {
+  for(int i=0; i<4; i++){
+      set_motor_power(i, (PWM_LOW + PWM_HIGH)/2);
+  }
+}
+
 void handle_failsafes() {
   long t = millis();
-  bool timedout = (t - last_message_millis) > TIMEOUT;
+  timedout = (t - last_message_millis) > TIMEOUT;
   do_blink = !timedout;
+
   if (timedout) {
-    if(motors_attached()){
-      detach_motors();
-    }
-  }else if(!estopped){
-    if(!motors_attached()){
-      attach_motors();
-    }
+    stop();
   }
 }
 
