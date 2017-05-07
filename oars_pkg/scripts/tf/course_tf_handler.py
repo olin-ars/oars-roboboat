@@ -281,6 +281,19 @@ class NavigationChallenge(object):
             self.exit_gate.as_transforms(self.exit_gate.child_frame)
         )
 
+    def update_detection(self, msg):
+        """
+        Attempts to update all objects in this challenge with data from a laser scan processing
+        :param (PointCloud) msg: Processed detection points from laser processor
+        :return bool: Did anything get updated?
+        """
+        did_update = [
+            self.entrance_gate.update_detection(msg),
+            self.exit_gate.update_detection(msg)
+        ]
+
+        return did_update.count(True) > 0
+
 
 class SpeedChallenge(object):
     """
@@ -306,6 +319,19 @@ class SpeedChallenge(object):
             self.buoy.as_transforms('course/speed_buoy')
         )
 
+    def update_detection(self, msg):
+        """
+        Attempts to update all objects in this challenge with data from a laser scan processing
+        :param (PointCloud) msg: Processed detection points from laser processor
+        :return bool: Did anything get updated?
+        """
+        did_update = [
+            self.gate.update_detection(msg),
+            self.buoy.update_detection(msg)
+        ]
+
+        return did_update.count(True) > 0
+
 
 class TFHandler(object):
     """
@@ -319,6 +345,8 @@ class TFHandler(object):
 
         config_file = rospy.get_param('~config')
 
+        rospy.Subscriber('/scan/circles', PointCloud, self.on_detect_circles)
+
         self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
         self.tf_pub = tf2_ros.TransformBroadcaster()
 
@@ -327,6 +355,18 @@ class TFHandler(object):
         self.name = 'Unnamed course'
         self.challenges = []
         self.loadConfig(config_file)
+
+    def on_detect_circles(self, msg):
+        updated_challenges = []
+        for challenge in self.challenges:
+            did_update = challenge.update_detection(msg)
+            if did_update:
+                updated_challenges.append(challenge)
+
+        print "{} challenges updated using laser scan".format(len(updated_challenges))
+
+        # TODO: immediately republish the transforms for challenges that updated
+
 
     def loadConfig(self, config_file):
         """
