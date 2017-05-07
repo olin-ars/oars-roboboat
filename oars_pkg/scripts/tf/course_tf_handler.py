@@ -4,15 +4,20 @@ import random
 
 import math
 import rospy
+import tf2_geometry_msgs
 import tf2_ros
 import tf_conversions
-from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, TransformStamped, Quaternion
+from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, TransformStamped, Quaternion, Point32, \
+    PointStamped
 from std_msgs.msg import ColorRGBA, Header
 from visualization_msgs.msg import Marker, MarkerArray
+from sensor_msgs.msg import PointCloud
 
 # Define units for convenience later
 inch = 2.54 / 100
 foot = 12 * inch
+
+tf_buff = tf2_ros.Buffer()
 
 
 class CoursePoint(object):
@@ -48,7 +53,7 @@ class CoursePoint(object):
         self.y = json_object['y']
         self.theta = 0
         if 'theta' in json_object:
-            self.theta = json_object['theta']
+            self.theta = json_object['theta'] * math.pi/180
 
         if 'frame_id' in json_object:
             self.frame_id = json_object['frame_id']
@@ -80,7 +85,7 @@ class CoursePoint(object):
 
     @staticmethod
     def angle_to_quaternion(theta):
-        quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta * math.pi / 180)
+        quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta)
         return Quaternion(*quat)
 
 
@@ -128,6 +133,40 @@ class Buoy(CoursePoint):
 
         return [marker]
 
+    def update_detection(self, msg, uncertainty=3.0):
+        """
+        Updates the position of the buoy using the detections provided in msg.
+        Note that this does not ingest the raw points from the lidar, but the candidate buoy locations
+        from the processing script.
+        :param (PointCloud) msg: A list of possible buoy detections from the LIDAR processor
+        :param (float) uncertainty: How close to the buoy a detection must be to have any effect
+        :return bool: True if the position of the buoy was updated, False otherwise.
+        """
+
+        transform = tf_buff.lookup_transform(self.frame_id, msg.header.frame_id, msg.header.stamp)
+
+        valid_detections = []
+        for p in msg.points:
+            p = Point(p.x, p.y, 0)
+            local_point = tf2_geometry_msgs.do_transform_point(p, transform).point
+
+            dist = math.sqrt((local_point.x - self.x) ** 2 + (local_point.y - self.y) ** 2)
+            if dist < uncertainty:
+                valid_detections.append(local_point)
+
+        if len(valid_detections) == 1:
+            # Update the position of the Buoy based on the detection
+            p = valid_detections[0]
+
+            # TODO: Do something more intelligent to be less likely to jump around at spurious detections
+            self.x = p.x
+            self.y = p.y
+
+            return True
+
+        else:
+            return False
+
 
 class Gate(CoursePoint):
     """
@@ -148,6 +187,7 @@ class Gate(CoursePoint):
         self.from_json(json_object)
 
         self.child_frame = child_frame
+        self.gate_width = gate_width
 
         self.leftBuoy = Buoy(0, gate_width / 2, shape, 'red', child_frame)
         self.rightBuoy = Buoy(0, -gate_width / 2, shape, 'green', child_frame)
@@ -168,6 +208,57 @@ class Gate(CoursePoint):
 
         return [line] + self.leftBuoy.as_markers() + self.rightBuoy.as_markers()
 
+    def update_detection(self, msg, uncertainty=3.0):
+        """
+        Updates the position and orientation of the gate using the detections provided in msg.
+        Note that this does not ingest the raw points from the lidar, but the candidate buoy locations
+        from the processing script.
+        :param (PointCloud) msg: A list of possible buoy detections from the LIDAR processor
+        :param (float) uncertainty: How close to the buoy a detection must be to have any effect
+        :return bool: True if the position of the buoy was updated, False otherwise.
+        """
+
+        transform = tf_buff.lookup_transform(self.frame_id, msg.header.frame_id, msg.header.stamp)
+
+        valid_detections = []
+        for p in msg.points:
+            p = Point(p.x, p.y, 0)
+            local_point = tf2_geometry_msgs.do_transform_point(p, transform).point
+
+            # TODO Check for diatance from each of the two buoys instead of this
+            dist = math.sqrt((local_point.x - self.x) ** 2 + (local_point.y - self.y) ** 2)
+            if dist < uncertainty + self.gate_width / 2:
+                valid_detections.append(local_point)
+
+        if len(valid_detections) == 2:
+            # Update the position of the Gate based on the detections
+            p1, p2 = valid_detections
+
+            # TODO: Do something more intelligent to be less likely to jump around at spurious detections
+            self.x = (p1.x + p2.x)/2
+            self.y = (p1.y + p2.y)/2
+
+            # The buoys are offset 90 degrees from the x-axis
+            currentTheta = self.theta + math.pi/2
+            # The new buoy detections also form some angle
+            newTheta = math.atan2(p2.y-p1.y, p2.x-p1.x)
+
+            angleDelta = newTheta - currentTheta
+
+            # Make sure that the left and right buoys don't switch places completely.
+            while angleDelta < -math.pi/2:
+                angleDelta += math.pi
+            while angleDelta > math.pi/2:
+                angleDelta -= math.pi
+
+            # Update the angle
+            self.theta += angleDelta
+
+            return True
+
+        else:
+            return False
+
 
 class NavigationChallenge(object):
     """
@@ -186,8 +277,8 @@ class NavigationChallenge(object):
 
     def as_transforms(self):
         return (
-            self.entrance_gate.as_transforms('course/navigation_entrance') +
-            self.exit_gate.as_transforms('course/navigation_exit')
+            self.entrance_gate.as_transforms(self.entrance_gate.child_frame) +
+            self.exit_gate.as_transforms(self.exit_gate.child_frame)
         )
 
 
@@ -199,6 +290,10 @@ class SpeedChallenge(object):
     def __init__(self, json_object):
         self.gate = Gate(json_object['gate'], 'course', child_frame='course/speed_gate',
                          shape='sphere', gate_width=5 * foot)
+
+        if 'theta' not in json_object['buoy'] and 'theta' in json_object['gate']:
+            json_object['buoy']['theta'] = json_object['gate']['theta']
+
         self.buoy = Buoy(0, 0, kind='sphere', color='blue')
         self.buoy.from_json(json_object['buoy'])
 
@@ -216,6 +311,7 @@ class TFHandler(object):
     """
     Class for the ROS node associated with managing and handling tf frames for RoboBoat.
     """
+
     def __init__(self):
         super(TFHandler, self).__init__()
 
@@ -225,6 +321,8 @@ class TFHandler(object):
 
         self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
         self.tf_pub = tf2_ros.TransformBroadcaster()
+
+        tf2_ros.TransformListener(tf_buff)
 
         self.name = 'Unnamed course'
         self.challenges = []
