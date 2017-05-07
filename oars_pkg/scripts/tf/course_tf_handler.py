@@ -353,6 +353,8 @@ class TFHandler(object):
 
         tf2_ros.TransformListener(tf_buff)
 
+        self.root = None
+
         self.name = 'Unnamed course'
         self.challenges = []
         self.loadConfig(config_file)
@@ -380,6 +382,10 @@ class TFHandler(object):
         with open(config_file) as f:
             data = json.load(f)
 
+            if 'root_position' in data:
+                self.root = CoursePoint(frame_id='map')
+                self.root.from_json(data['root_position'])
+
             if 'name' in data:
                 self.name = data['name']
 
@@ -397,6 +403,10 @@ class TFHandler(object):
 
     def as_transforms(self):
         transforms = []
+
+        if self.root is not None:
+            transforms.extend(self.root.as_transforms(child_frame='course'))
+
         for challenge in self.challenges:
             transforms.extend(challenge.as_transforms())
         return transforms
