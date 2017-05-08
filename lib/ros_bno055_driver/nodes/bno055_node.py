@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
 
+import json
 import sys
 import os
 import rospy
@@ -44,7 +45,7 @@ class BNO055Driver(object):
             self.load_calibration(calibration_file)
         self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=1)
         self.temp_pub = rospy.Publisher('imu/temperature', Temperature, queue_size=1)
-        self.calibration_pub = rospy.Publisher('imu/calibration', String, queue_size=1)
+        self.calibration_pub = rospy.Publisher('imu/calibration_status', String, queue_size=1)
         self.frame_id = rospy.get_param('~frame_id', 'imu')
         self.reset_msgs()
 
@@ -82,7 +83,10 @@ class BNO055Driver(object):
     def load_calibration(self, calibration_file):
         if os.path.isfile(calibration_file):
             rospy.loginfo('loading calibration file from: {}'.format(calibration_file))
-            self.device.load_calibration(calibration_file)
+            with open(calibration_file) as f:
+                calibration = json.load(f)
+
+            self.device.set_calibration(calibration)
         else:
             rospy.logwarn('unable to load calibration file from: {}'.format(calibration_file))
         calibration_status = self.device.get_calibration_status()
