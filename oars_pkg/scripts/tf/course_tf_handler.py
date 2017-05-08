@@ -19,6 +19,9 @@ foot = 12 * inch
 
 tf_buff = tf2_ros.Buffer()
 
+# Publish all transforms this amount in the future to enable instant lookups with new data.
+# This is similar to how map->odom publishers like amcl behave.
+FORWARD_DATE = rospy.Duration.from_sec(0.3)
 
 class CoursePoint(object):
     """
@@ -79,7 +82,7 @@ class CoursePoint(object):
         """
         pose = self.as_pose()
         # TODO: consider publishing the transform dated in the future
-        header = Header(stamp=rospy.Time.now(), frame_id=self.frame_id)
+        header = Header(stamp=rospy.Time.now() + FORWARD_DATE, frame_id=self.frame_id)
         transform = Transform(translation=pose.position, rotation=pose.orientation)
         return [TransformStamped(header=header, child_frame_id=child_frame, transform=transform)]
 
