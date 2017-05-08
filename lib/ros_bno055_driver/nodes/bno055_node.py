@@ -7,7 +7,7 @@ import rospy
 import math
 import time
 
-from std_msgs.msg import Header
+from std_msgs.msg import Header, String
 from sensor_msgs.msg import Imu, Temperature
 from Adafruit_BNO055.BNO055 import BNO055
 from threading import Timer
@@ -43,7 +43,8 @@ class BNO055Driver(object):
         if calibration_file:
             self.load_calibration(calibration_file)
         self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=1)
-        self.temp_pub = rospy.Publisher('temperature', Temperature, queue_size=1)
+        self.temp_pub = rospy.Publisher('imu/temperature', Temperature, queue_size=1)
+        self.calibration_pub = rospy.Publisher('imu/calibration', String, queue_size=1)
         self.frame_id = rospy.get_param('~frame_id', 'imu')
         self.reset_msgs()
 
@@ -72,13 +73,11 @@ class BNO055Driver(object):
             rospy.loginfo('unable load calibration')
 
         time.sleep(1)
-        self.print_status()
+        rospy.loginfo(self.get_status())
 
-        Timer(1, self.print_status).run()
-
-    def print_status(self):
+    def get_status(self):
         calibration_status = self.device.get_calibration_status()
-        rospy.loginfo('calibration status is system={} gyro={} accel={} mag={} '.format(*calibration_status))
+        return 'calibration status is system={} gyro={} accel={} mag={} '.format(*calibration_status)
 
     def load_calibration(self, calibration_file):
         if os.path.isfile(calibration_file):
@@ -134,6 +133,7 @@ class BNO055Driver(object):
         self.temp_msg.temperature = self.device.read_temp()
         self.temp_pub.publish(self.temp_msg)
 
+        self.calibration_pub.publish(self.get_status())
 
 
 def main():
