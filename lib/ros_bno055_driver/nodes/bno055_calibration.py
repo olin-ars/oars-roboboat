@@ -35,7 +35,10 @@ def main():
     device.set_external_crystal(True)
 
     calibration_status = device.get_calibration_status()
-    while calibration_status != (3, ) * 4:
+
+    start_time = time.time()
+
+    while calibration_status != (3, ) * 4 and time.time() - start_time < 120:
         calibration_status = device.get_calibration_status()
         logger.debug('waiting for device to be fully calibrated. please rotate IMU.')
         logger.info('calibration status is {} {} {} {} '.format(*calibration_status))

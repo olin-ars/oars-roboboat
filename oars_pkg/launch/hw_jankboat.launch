@@ -16,7 +16,7 @@
     <!-- USB sensors -->
     <node name="imu_node" pkg="bosch_bno055_driver" type="bno055_node.py" output="screen" respawn="true" respawn_delay="10" >
         <param name="serial_port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" />
-        <param name="calibration_file" value="" />
+        <param name="calibration_file" value="$(find oars_pkg)/config/imu-calibration.py" />
     </node>
 
     <node name="gps_node" pkg="nmea_navsat_driver" type="nmea_serial_driver" ns="/gps">
