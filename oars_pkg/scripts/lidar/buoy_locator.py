@@ -5,9 +5,11 @@ import math
 import rospy
 from laser_geometry import LaserProjection
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import ColorRGBA
 from visualization_msgs import msg
-from std_msgs import msg as msg_str
+from std_msgs import msg as std_msg
 import sensor_msgs.point_cloud2 as pc2
+from sensor_msgs.msg import PointCloud
 # import sens
 
 
@@ -43,15 +45,16 @@ class BuoyLocator:
         circles = self.circle_finder.process_point_cloud(cloud)
         for c in circles:
             m = msg.Marker()
-            h = msg_str.Header()
+            h = std_msg.Header()
             h.stamp = timestamp
+            h.frame_id = scan_msg.header.frame_id
             m.header = h
             m.type = m.SPHERE
             m.action = m.ADD
             m.scale.x = c.radius
             m.scale.y = c.radius
             m.scale.z = c.radius
-            m.color.a = c.radius
+            m.color = ColorRGBA(r=1, g=1, b=0, a=1)
             m.pose.position.x = c.center_x
             m.pose.position.y = c.center_y
             m.pose.position.z = 0
