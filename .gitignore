@@ -1,3 +1,4 @@
+.git/
 
 # Created by https://www.gitignore.io/api/python,ros,processing,sublimetext
 
@@ -98,7 +99,7 @@ target/
 ### ROS ###
 build/
 bin/
-lib/
+#lib/
 msg_gen/
 srv_gen/
 msg/*Action.msg
