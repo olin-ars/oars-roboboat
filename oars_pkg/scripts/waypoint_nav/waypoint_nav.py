@@ -83,7 +83,6 @@ class Main(object):
 
         while not rospy.is_shutdown():
             if self.running and self.has_wpt:
-                print "We have a waypoint!"
 
                 goal = self.tf.transformPoint(boat_frame, self.wpt).point
                 distance, angle = self.to_polar(goal)

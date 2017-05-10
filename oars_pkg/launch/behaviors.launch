@@ -1,6 +1,6 @@
 <launch>
     <!-- Waypoint navigation -->
-    <node name="waypoint_nav" pkg="oars_pkg" type="waypoint_nav.py" />
+    <node name="waypoint_nav" pkg="oars_pkg" type="waypoint_nav.py" output="screen"/>
 
     <!-- Joystick Handler -->
     <node name="joystick_handler" pkg="oars_pkg" type="joy_control.py" output="screen"/>
