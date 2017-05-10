@@ -42,7 +42,7 @@ def main():
 
     print('Running state machine "{}", ctrl c at any time to abort.'.format(configured_plan))
 
-    plansm.execute();
+    plansm.execute()
 
 if __name__ == '__main__':
     main()
