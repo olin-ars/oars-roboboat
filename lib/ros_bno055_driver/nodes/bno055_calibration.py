@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
 
+import json
 import sys
 import time
 import logging
@@ -35,7 +36,10 @@ def main():
     device.set_external_crystal(True)
 
     calibration_status = device.get_calibration_status()
-    while calibration_status != (3, ) * 4:
+
+    start_time = time.time()
+
+    while calibration_status != (3, ) * 4 and time.time() - start_time < 60:
         calibration_status = device.get_calibration_status()
         logger.debug('waiting for device to be fully calibrated. please rotate IMU.')
         logger.info('calibration status is {} {} {} {} '.format(*calibration_status))
@@ -47,7 +51,10 @@ def main():
 
     logger.info('done calibrating device.')
     # os.makedirs(os.path.dirname(calibration_file))
-    device.write_calibration(args.calibration_file)
+    calibration = device.get_calibration()
+
+    with open(args.calibration_file, 'w') as f:
+        json.dump(calibration, f)
 
 
 if __name__ == '__main__':
