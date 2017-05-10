@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Handles processing LIDAR data (published via ROS) in search of circles. """
 import numpy as np
 from geometry_msgs.msg import Point32
