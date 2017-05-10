@@ -17,4 +17,9 @@
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_map" output="screen">
     	<rosparam command="load" file="$(find oars_pkg)/config/localization_map.yaml" />
     </node>
+
+    <!-- Smooth localization -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_odom" output="screen">
+    	<rosparam command="load" file="$(find oars_pkg)/config/localization_odom.yaml" />
+    </node>
 </launch>
