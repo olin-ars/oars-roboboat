@@ -1,5 +1,6 @@
 """ Handles processing LIDAR data (published via ROS) in search of circles. """
 import numpy as np
+from geometry_msgs.msg import Point32
 from scipy.sparse.linalg import lsqr
 import math
 import rospy
@@ -10,17 +11,19 @@ from visualization_msgs import msg
 from std_msgs import msg as std_msg
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud
+
+
 # import sens
 
 
 class BuoyLocator:
-
     DEFAULT_ROS_NODE_NAME = 'buoy_locator'
     LIDAR_SCAN_TOPIC = '/scan'
     MIN_BUOY_RAD = 0.075  # Minimum buoy diameter (m)
-    MAX_BUOY_RAD = 0.3   # Maximum buoy diameter (m)
+    MAX_BUOY_RAD = 0.3  # Maximum buoy diameter (m)
     CIRCLE_DETECT_THRESHOLD = 0.0001
     POINT_DIST_MIN = 0.8  # Don't look at points within this radius of the boat
+
     # More parameters for circle fitting in CircleFinder
 
     def __init__(self, node_name=DEFAULT_ROS_NODE_NAME):
@@ -30,6 +33,7 @@ class BuoyLocator:
         self.circle_finder = CircleFinder(self.MIN_BUOY_RAD, self.MAX_BUOY_RAD, self.CIRCLE_DETECT_THRESHOLD)
         # Publish to the '/buoys' topic
         self.pub = rospy.Publisher('buoys', msg.MarkerArray, queue_size=1)
+        self.point_pub = rospy.Publisher('/scan/circles', PointCloud, queue_size=1)
         self.marker_array = msg.MarkerArray()
 
     def run(self):
@@ -47,8 +51,10 @@ class BuoyLocator:
         timestamp = scan_msg.header.stamp
         circles = self.circle_finder.process_point_cloud(cloud)
 
+        points = PointCloud(header=scan_msg.header)
+
         for i, c in enumerate(circles):
-            if self.POINT_DIST_MIN > math.sqrt(c.center_x**2 + c.center_y**2):
+            if self.POINT_DIST_MIN > math.sqrt(c.center_x ** 2 + c.center_y ** 2):
                 continue
 
             m = msg.Marker()
@@ -58,9 +64,9 @@ class BuoyLocator:
             m.header = h
             m.type = m.SPHERE
             m.action = m.ADD
-            m.scale.x = c.radius*2
-            m.scale.y = c.radius*2
-            m.scale.z = c.radius*2
+            m.scale.x = c.radius * 2
+            m.scale.y = c.radius * 2
+            m.scale.z = c.radius * 2
             m.color = ColorRGBA(r=1, g=1, b=0, a=0.5)
             m.pose.position.x = c.center_x
             m.pose.position.y = c.center_y
@@ -68,10 +74,13 @@ class BuoyLocator:
 
             m.id = i
 
+            points.points.append(Point32(x=c.center_x, y=c.center_y, z=0))
+
             self.marker_array.markers.append(m)
             # print('Found circle at ({:0.3},{:0.3}) with radius {:0.3f}m...'.format(c.center_x, c.center_y, c.radius))
 
         self.pub.publish(self.marker_array)
+        self.point_pub.publish(points)
 
 
 class CircleFinder:
@@ -106,8 +115,8 @@ class CircleFinder:
         points_to_look_at = 10
         step = 2
         num_extra_points = num_points % step
-        for i in range(0, num_points-num_extra_points, step):
-            circle = self._fit_circle(x[i:i+points_to_look_at-1], y[i:i+points_to_look_at-1])
+        for i in range(0, num_points - num_extra_points, step):
+            circle = self._fit_circle(x[i:i + points_to_look_at - 1], y[i:i + points_to_look_at - 1])
             if circle:
                 circles.append(circle)
         return circles
@@ -128,17 +137,17 @@ class CircleFinder:
         # Convert from the least squares solution to the more familiar parameters of a circle.
         xc = -w[0][0] / 2.0
         yc = -w[0][1] / 2.0
-        r = math.sqrt(xc**2 + yc**2 - w[0][2])
-        ave_error = w[4]/len(x)
+        r = math.sqrt(xc ** 2 + yc ** 2 - w[0][2])
+        ave_error = w[4] / len(x)
         return Circle(xc, yc, r) if (ave_error < self.error_threshold and self.min_rad < r < self.max_rad) else None
 
 
 class Circle:
-
     def __init__(self, center_x, center_y, radius):
         self.center_x = center_x
         self.center_y = center_y
         self.radius = radius
+
 
 if __name__ == '__main__':
     BuoyLocator().run()
