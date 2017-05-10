@@ -2,32 +2,34 @@
 """
 This node navigates to a waypoint.
 """
-#python imports
+# python imports
 import math
-#ros imports
+# ros imports
 import rospy
 import tf
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PointStamped
-#oars imports
+# oars imports
 from oars_arbiter.voter import Voter_full
 from oars_arbiter import createVote
 
 name = 'waypoint_nav'
 
-rospy.init_node(name+'_node')
+rospy.init_node(name + '_node')
 
 boat_frame = 'base_link'
 waypoint_topic = '/next_waypoint'
 checkoff_distance = 2
 P_const = 25
 
+
 def bound(n, low, high):
-    if n<low:
+    if n < low:
         return low
-    if n>high:
+    if n > high:
         return high
     return n
+
 
 class Main(object):
     """docstring for Main"""
@@ -35,8 +37,8 @@ class Main(object):
     def __init__(self, ):
         super(Main, self).__init__()
 
-        self.startSub = rospy.Subscriber('/'+name+'_active', Bool, self.onEnable)
-        self.donePub = rospy.Publisher('/'+name+'_done', Bool, queue_size=10)
+        self.startSub = rospy.Subscriber('/' + name + '_active', Bool, self.onEnable)
+        self.donePub = rospy.Publisher('/' + name + '_done', Bool, queue_size=10)
 
         self.voter = Voter_full(name)
 
@@ -46,11 +48,10 @@ class Main(object):
         self.tf = tf.TransformListener()
 
     def set_wpt(self, point):
-        if True: #not self.has_wpt:
+        if True:  # not self.has_wpt:
             self.has_wpt = True
             self.wpt = point
             print "navigating to waypoint"
-
 
     def onEnable(self, msg):
         if msg.data == True:
@@ -63,14 +64,18 @@ class Main(object):
             self.running = False
 
     def finishTask(self):
+        self.voter.dir_vote = [0]*101
+        self.voter.make_vote()
+
         self.waypointSub.unregister()
         self.has_wpt = False
         self.donePub.publish(Bool(True))
         print 'waypoint reached'
 
-    def to_polar(self, point):
-        r = math.sqrt(point.x**2 + point.y**2)
-        theta = math.atan2(point.x, point.y)*180/math.pi
+    @staticmethod
+    def to_polar(point):
+        r = math.sqrt(point.x ** 2 + point.y ** 2)
+        theta = math.atan2(point.x, point.y) * 180 / math.pi
         return r, theta
 
     def run(self):
@@ -85,7 +90,7 @@ class Main(object):
                 if distance < checkoff_distance:
                     self.finishTask()
 
-                speed = bound(distance*P_const, 10, 50)
+                speed = bound(distance * P_const, 10, 50)
 
                 self.voter.dir_vote = createVote.directionVoteGauss(angle)
                 self.voter.speed_vote = createVote.max_speed(speed)
