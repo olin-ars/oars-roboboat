@@ -1,8 +1,10 @@
 <launch>
     <!-- Allow manual specification of serial port number -->
-    <arg name="dev" />
+    <arg name="dev" default="/dev/input/js0"/>
     <!-- RC joystick code -->
     <node name="joystick_raw" pkg="joy" type="joy_node">
         <param name="dev" value="$(arg dev)"/>
     </node>
+
+    <node name="/shore_watchdog" pkg="rostopic" type="rostopic" args="pub -r 10 /shore_alive std_msgs/Bool &quot;data: true&quot;"/>
 </launch>
