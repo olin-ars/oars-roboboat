@@ -4,16 +4,24 @@ import random
 
 import math
 import rospy
+import tf2_geometry_msgs
 import tf2_ros
 import tf_conversions
-from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, TransformStamped, Quaternion
+from geometry_msgs.msg import Pose2D, Point, Pose, Vector3, Transform, TransformStamped, Quaternion, Point32, \
+    PointStamped
 from std_msgs.msg import ColorRGBA, Header
 from visualization_msgs.msg import Marker, MarkerArray
+from sensor_msgs.msg import PointCloud
 
 # Define units for convenience later
 inch = 2.54 / 100
 foot = 12 * inch
 
+tf_buff = tf2_ros.Buffer()
+
+# Publish all transforms this amount in the future to enable instant lookups with new data.
+# This is similar to how map->odom publishers like amcl behave.
+FORWARD_DATE = rospy.Duration.from_sec(0.3)
 
 class CoursePoint(object):
     """
@@ -48,7 +56,7 @@ class CoursePoint(object):
         self.y = json_object['y']
         self.theta = 0
         if 'theta' in json_object:
-            self.theta = json_object['theta']
+            self.theta = json_object['theta'] * math.pi/180
 
         if 'frame_id' in json_object:
             self.frame_id = json_object['frame_id']
@@ -74,7 +82,7 @@ class CoursePoint(object):
         """
         pose = self.as_pose()
         # TODO: consider publishing the transform dated in the future
-        header = Header(stamp=rospy.Time.now(), frame_id=self.frame_id)
+        header = Header(stamp=rospy.Time.now() + FORWARD_DATE, frame_id=self.frame_id)
         transform = Transform(translation=pose.position, rotation=pose.orientation)
         return [TransformStamped(header=header, child_frame_id=child_frame, transform=transform)]
 
@@ -82,7 +90,7 @@ class CoursePoint(object):
     def angle_to_quaternion(theta):
         if theta is None:
             theta = 0
-        quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta * math.pi / 180)
+        quat = tf_conversions.transformations.quaternion_from_euler(0, 0, theta)
         return Quaternion(*quat)
 
 
@@ -130,6 +138,40 @@ class Buoy(CoursePoint):
 
         return [marker]
 
+    def update_detection(self, msg, uncertainty=3.0):
+        """
+        Updates the position of the buoy using the detections provided in msg.
+        Note that this does not ingest the raw points from the lidar, but the candidate buoy locations
+        from the processing script.
+        :param (PointCloud) msg: A list of possible buoy detections from the LIDAR processor
+        :param (float) uncertainty: How close to the buoy a detection must be to have any effect
+        :return bool: True if the position of the buoy was updated, False otherwise.
+        """
+
+        transform = tf_buff.lookup_transform(self.frame_id, msg.header.frame_id, msg.header.stamp)
+
+        valid_detections = []
+        for p in msg.points:
+            p = Point(p.x, p.y, 0)
+            local_point = tf2_geometry_msgs.do_transform_point(p, transform).point
+
+            dist = math.sqrt((local_point.x - self.x) ** 2 + (local_point.y - self.y) ** 2)
+            if dist < uncertainty:
+                valid_detections.append(local_point)
+
+        if len(valid_detections) == 1:
+            # Update the position of the Buoy based on the detection
+            p = valid_detections[0]
+
+            # TODO: Do something more intelligent to be less likely to jump around at spurious detections
+            self.x = p.x
+            self.y = p.y
+
+            return True
+
+        else:
+            return False
+
 
 class Gate(CoursePoint):
     """
@@ -150,6 +192,7 @@ class Gate(CoursePoint):
         self.from_json(json_object)
 
         self.child_frame = child_frame
+        self.gate_width = gate_width
 
         self.leftBuoy = Buoy(0, gate_width / 2, shape, 'red', child_frame)
         self.rightBuoy = Buoy(0, -gate_width / 2, shape, 'green', child_frame)
@@ -170,6 +213,57 @@ class Gate(CoursePoint):
 
         return [line] + self.leftBuoy.as_markers() + self.rightBuoy.as_markers()
 
+    def update_detection(self, msg, uncertainty=3.0):
+        """
+        Updates the position and orientation of the gate using the detections provided in msg.
+        Note that this does not ingest the raw points from the lidar, but the candidate buoy locations
+        from the processing script.
+        :param (PointCloud) msg: A list of possible buoy detections from the LIDAR processor
+        :param (float) uncertainty: How close to the buoy a detection must be to have any effect
+        :return bool: True if the position of the buoy was updated, False otherwise.
+        """
+
+        transform = tf_buff.lookup_transform(self.frame_id, msg.header.frame_id, msg.header.stamp)
+
+        valid_detections = []
+        for p in msg.points:
+            p = Point(p.x, p.y, 0)
+            local_point = tf2_geometry_msgs.do_transform_point(p, transform).point
+
+            # TODO Check for diatance from each of the two buoys instead of this
+            dist = math.sqrt((local_point.x - self.x) ** 2 + (local_point.y - self.y) ** 2)
+            if dist < uncertainty + self.gate_width / 2:
+                valid_detections.append(local_point)
+
+        if len(valid_detections) == 2:
+            # Update the position of the Gate based on the detections
+            p1, p2 = valid_detections
+
+            # TODO: Do something more intelligent to be less likely to jump around at spurious detections
+            self.x = (p1.x + p2.x)/2
+            self.y = (p1.y + p2.y)/2
+
+            # The buoys are offset 90 degrees from the x-axis
+            currentTheta = self.theta + math.pi/2
+            # The new buoy detections also form some angle
+            newTheta = math.atan2(p2.y-p1.y, p2.x-p1.x)
+
+            angleDelta = newTheta - currentTheta
+
+            # Make sure that the left and right buoys don't switch places completely.
+            while angleDelta < -math.pi/2:
+                angleDelta += math.pi
+            while angleDelta > math.pi/2:
+                angleDelta -= math.pi
+
+            # Update the angle
+            self.theta += angleDelta
+
+            return True
+
+        else:
+            return False
+
 
 class NavigationChallenge(object):
     """
@@ -188,9 +282,22 @@ class NavigationChallenge(object):
 
     def as_transforms(self):
         return (
-            self.entrance_gate.as_transforms('course/navigation_entrance') +
-            self.exit_gate.as_transforms('course/navigation_exit')
+            self.entrance_gate.as_transforms(self.entrance_gate.child_frame) +
+            self.exit_gate.as_transforms(self.exit_gate.child_frame)
         )
+
+    def update_detection(self, msg):
+        """
+        Attempts to update all objects in this challenge with data from a laser scan processing
+        :param (PointCloud) msg: Processed detection points from laser processor
+        :return bool: Did anything get updated?
+        """
+        did_update = [
+            self.entrance_gate.update_detection(msg),
+            self.exit_gate.update_detection(msg)
+        ]
+
+        return did_update.count(True) > 0
 
 
 class SpeedChallenge(object):
@@ -216,11 +323,25 @@ class SpeedChallenge(object):
             self.buoy.as_transforms('course/speed_buoy')
         )
 
+    def update_detection(self, msg):
+        """
+        Attempts to update all objects in this challenge with data from a laser scan processing
+        :param (PointCloud) msg: Processed detection points from laser processor
+        :return bool: Did anything get updated?
+        """
+        did_update = [
+            self.gate.update_detection(msg),
+            self.buoy.update_detection(msg)
+        ]
+
+        return did_update.count(True) > 0
+
 
 class TFHandler(object):
     """
     Class for the ROS node associated with managing and handling tf frames for RoboBoat.
     """
+
     def __init__(self):
         super(TFHandler, self).__init__()
 
@@ -228,12 +349,30 @@ class TFHandler(object):
 
         config_file = rospy.get_param('~config')
 
+        rospy.Subscriber('/scan/circles', PointCloud, self.on_detect_circles)
+
         self.marker_pub = rospy.Publisher('/course_markers', MarkerArray, queue_size=10)
         self.tf_pub = tf2_ros.TransformBroadcaster()
+
+        tf2_ros.TransformListener(tf_buff)
+
+        self.root = None
 
         self.name = 'Unnamed course'
         self.challenges = []
         self.loadConfig(config_file)
+
+    def on_detect_circles(self, msg):
+        updated_challenges = []
+        for challenge in self.challenges:
+            did_update = challenge.update_detection(msg)
+            if did_update:
+                updated_challenges.append(challenge)
+
+        print "{} challenges updated using laser scan".format(len(updated_challenges))
+
+        # TODO: immediately republish the transforms for challenges that updated
+
 
     def loadConfig(self, config_file):
         """
@@ -245,6 +384,10 @@ class TFHandler(object):
         """
         with open(config_file) as f:
             data = json.load(f)
+
+            if 'root_position' in data:
+                self.root = CoursePoint(frame_id='map')
+                self.root.from_json(data['root_position'])
 
             if 'name' in data:
                 self.name = data['name']
@@ -263,6 +406,10 @@ class TFHandler(object):
 
     def as_transforms(self):
         transforms = []
+
+        if self.root is not None:
+            transforms.extend(self.root.as_transforms(child_frame='course'))
+
         for challenge in self.challenges:
             transforms.extend(challenge.as_transforms())
         return transforms
