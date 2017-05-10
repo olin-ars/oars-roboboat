@@ -50,8 +50,9 @@ test1 = smach.StateMachine(outcomes=['completed', 'failed'])
 
 with test1:
     smach.StateMachine.add('DELAY_START', DelayTask(10),
-                           transitions={'done': ''})
-    smach.StateMachine.add('NAVIGATION', navigation_challenge)
+                           transitions={'done': 'NAVIGATION'})
+    smach.StateMachine.add('NAVIGATION', navigation_challenge,
+                           transitions={'completed': 'completed', 'failed': 'failed'})
 
 plans = {
     'firstplan': firstsm,
