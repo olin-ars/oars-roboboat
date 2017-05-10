@@ -75,7 +75,7 @@ class Main(object):
     @staticmethod
     def to_polar(point):
         r = math.sqrt(point.x ** 2 + point.y ** 2)
-        theta = math.atan2(point.x, point.y) * 180 / math.pi
+        theta = math.atan2(point.y, point.x) * 180 / math.pi
         return r, theta
 
     def run(self):
