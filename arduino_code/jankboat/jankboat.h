@@ -1,4 +1,5 @@
 void handle_failsafes();
+void stop();
 void handle_status_LED();
 void set_motor_power(int motor_num, float input_power);
 bool motors_attached();
