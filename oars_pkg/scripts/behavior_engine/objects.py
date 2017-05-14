@@ -14,6 +14,7 @@ class Plan(object):
     """
     A Plan represents a sequence of Tasks that are intended to be exectued in order by the robot.
     """
+
     def __init__(self, name, sm):
         """
         :type tasklist: list of Task
@@ -21,11 +22,12 @@ class Plan(object):
         self.name = name
         self.sm = sm
 
+
 class Task(smach.State):
     """Task is the base class for anything that can go in a plan"""
 
     def __init__(self, name):
-        smach.State.__init__(self, outcomes = ['done'])
+        smach.State.__init__(self, outcomes=['done'])
 
         self.name = name
 
@@ -33,15 +35,14 @@ class Task(smach.State):
         self.active = False
         self.statusPub = rospy.Publisher('smach', String, queue_size=10)
 
-    def execute(self, userdata): 
-    	self.start(None)
+    def execute(self, userdata):
+        self.start(None)
 
-    	while self.active and not rospy.is_shutdown():
-    		time.sleep(0.01)
+        while self.active and not rospy.is_shutdown():
+            time.sleep(0.01)
             self.statusPub.publish(self.name)
 
-    	return 'done'
-
+        return 'done'
 
     def start(self, finishcallback):
         """

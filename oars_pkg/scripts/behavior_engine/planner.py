@@ -19,18 +19,18 @@ Add to plans.py
 To add a task:
 Add to tasks.py
 """
-import thread
-import time
 
-import rospy
+import sys
 
 from plans import *
 
-import sys
-import smach_ros
-
 rospy.init_node('planner')
-configured_plan = rospy.get_param('~plan_name', 'firstplan')
+
+if len(sys.argv) != 2:
+    rospy.logerr('Planner must be given an argument to specify the plan to run')
+    exit()
+
+configured_plan = sys.argv[1]
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
 
     print('Running state machine "{}", ctrl c at any time to abort.'.format(configured_plan))
 
-    plansm.execute();
+    plansm.execute()
 
 if __name__ == '__main__':
     main()

@@ -9,14 +9,19 @@
     <!-- Teensy connection code -->
     <!--<node name="rosserial_wrapper" pkg="oars_pkg" type="rosserial_wrapper.py" />-->
 
-    <node name="teensy_connector" pkg="rosserial_python" type="serial_node.py">
+    <node name="teensy_connector" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true" respawn_delay="10">
         <param name="port" value="/dev/serial/by-id/usb-Teensyduino_USB_Serial_1661530-if00"/>
+    </node>
+
+    <!-- Ethernet sensors -->
+    <node name="lidar_node" pkg="sick_tim" type="sick_tim551_2050001" output="screen">
+        <param name="hostname" value="192.168.0.1"/>
     </node>
 
     <!-- USB sensors -->
     <node name="imu_node" pkg="bosch_bno055_driver" type="bno055_node.py" output="screen" respawn="true" respawn_delay="10" >
         <param name="serial_port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" />
-        <param name="calibration_file" value="" />
+        <param name="calibration_file" value="$(find oars_pkg)/config/imu-calibration.json" />
     </node>
 
     <node name="gps_node" pkg="nmea_navsat_driver" type="nmea_serial_driver" ns="/gps">

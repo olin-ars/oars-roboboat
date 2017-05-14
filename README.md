@@ -37,6 +37,17 @@ rosdep --ignore-src install --from-paths $(rospack find oars_pkg)/..
 
 # Running the Code
 
+## Jankboat
+1. Turn eveything on (e-stop can remain off)
+2. Connect several times via SSH
+3. Run relevant scripts on boat
+   * `roscore`
+   * `roslaunch oars_pkg core.launch`
+   * `rosrun oars_pkg course_tf_handler.py _config:=courses/sample_course.json`
+   * When you're ready: `rosrun oars_pkg planner.py test1`
+4. Setup your computer with ROS_IP, ROS_MASTER_URI, and then...
+   * `roslaunch oars_pkg joystick.launch`
+
 ## Tugboat
 
 1. Turn the tugboat on

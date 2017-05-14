@@ -1,0 +1,31 @@
+{
+  "name":"Sample course",
+  "root_position":{
+    "x":-2.0,
+    "y":0,
+    "theta":0
+  },
+  "navigation_challenge": {
+    "entrance_gate": {
+      "x": 2.0,
+      "y": 5.0,
+      "theta": 20
+    },
+    "exit_gate": {
+      "x": 12.0,
+      "y": 5.0,
+      "theta": -5
+    }
+  },
+  "speed_challenge":{
+    "gate":{
+      "x":-1.0,
+      "y":-1.0,
+      "theta":-25
+    },
+    "buoy":{
+      "x":8,
+      "y":-6
+    }
+  }
+}
